@@ -25,13 +25,13 @@ setup(
     zip_safe=False,
 	package_dir={'': 'src'},
     packages=find_packages(where='src'),
-    entry_points={
-        'console_scripts': [
-            'rest_api = rest_api:main',
-			'scheduler = scheduler:main',
-			'web_scraper = web_scraper:main'
-        ],
-    },
+    # entry_points={
+    #     'console_scripts': [
+    #         'rest_api = rest_api:main',
+	# 		'scheduler = scheduler:main',
+	# 		'web_scraper = web_scraper:main'
+    #     ],
+    # },
     # package_data={
     #     'ghia': ['templates/*.html', 'static/*.css']
     #     },
