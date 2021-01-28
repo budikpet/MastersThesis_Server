@@ -5,27 +5,22 @@ from worker import conn
 import zoo_scraper
 
 import logging
-logging.basicConfig()
-logging.getLogger('apscheduler').setLevel(logging.DEBUG)
 
-q = Queue(connection=conn)
-sched = BlockingScheduler()
-
-@sched.scheduled_job('interval', minutes=45)
-def timed_job():
-	print(f'JOB EXECUTED: This job is run every 45 minute. Current time is: {datetime.now()}')
+def add_web_scraping_job(interval_time: int):
+	print(f'JOB EXECUTED: This job is run every {interval_time}. Current time is: {datetime.now()}')
 	result = q.enqueue(zoo_scraper.run_test_job)
 
-@sched.scheduled_job('cron', minute=0, hour=2)
-def scheduled_job():
-	print('JOB EXECUTED: This job is run every day at 22:00.')
-	result = q.enqueue(zoo_scraper.run_test_job)
+def main():
+	# Set logging to DEBUG which prints additional information
+	logging.basicConfig()
+	logging.getLogger('apscheduler').setLevel(logging.DEBUG)
 
-@sched.scheduled_job('cron', day = 'last', minute=0, hour=22, misfire_grace_time=None)
-def scheduled_job():
-	"""
-	misfire_grace_time=None should make it certain that the job isn't discarted if scheduled execution is missed
-	"""
-	print('JOB EXECUTED: This job is run on a last day of the month at 21:00.')
+	q = Queue(connection=conn)
+	sched = BlockingScheduler()
 
-sched.start()
+	# misfire_grace_time=None should make it certain that the job isn't discarted if scheduled execution is missed
+	sched.add_job(add_web_scraping_job, args = ['day at 22:00'] 'cron', minute=0, hour=2, misfire_grace_time=None)
+	sched.add_job(add_web_scraping_job, args = ['last day of the month at 22:00'] 'cron', day='last', minute=0, hour=2, misfire_grace_time=None)
+	sched.add_job(add_web_scraping_job, args = ['45 minutes'] 'interval', minutes=45)
+
+	sched.start()
