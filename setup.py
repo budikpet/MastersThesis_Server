@@ -29,7 +29,7 @@ setup(
     #     'console_scripts': [
     #         'rest_api = rest_api:main',
 	# 		'scheduler = scheduler:main',
-	# 		'web_scraper = web_scraper:main'
+	# 		'scrapers = scrapers:main'
     #     ],
     # },
     # package_data={
