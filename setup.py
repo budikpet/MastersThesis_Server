@@ -3,6 +3,15 @@ from setuptools import setup, find_packages
 with open('README.md') as f:
     long_description = ''.join(f.readlines())
 
+deps_required = [
+	'fastapi>=0.63.0', 'requests>=2.25.1', 'beautifulsoup4>=4.9.3', 
+	'apscheduler>=3.7.0', 'levenshtein>==0.12.0', 'rq>=1.7.0'
+]
+
+deps_tests = [
+	'pytest==6.2.2', 'betamax>=0.8.1', 'flexmock>=0.10.4'
+]
+
 setup(
     name='masters_thesis_server',
     version='0.0.0.1',
@@ -10,12 +19,12 @@ setup(
     long_description=long_description,
     keywords="ghia,budikpet, web, cli",
     setup_requires=['pytest-runner'],
-    install_requires=['fastapi>=0.63.0', 'requests>=2.25.1', 'beautifulsoup4>=4.9.3', 'apscheduler>=3.7.0', 'levenshtein>==0.12.0', 'rq>=1.7.0'],
-    tests_require=['pytest==6.2.2', 'betamax>=0.8.1', 'flexmock>=0.10.4'],
+    install_requires=deps_required,
+    tests_require=deps_tests,
     
-    # Can then by installed by 'pip install .[dev]'
+    # Can then by installed by 'pip install ".[dev]"'
     extras_require={
-        'dev':  ['sphinx', 'jupyter']
+        'dev':  (['sphinx>=3.4.3', 'notebook>=6.2.0'] + deps_tests)
     },
     python_requires='>=3.7',
     author='Petr Budík',
