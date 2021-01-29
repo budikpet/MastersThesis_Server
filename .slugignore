@@ -1,0 +1,2 @@
+# Specifies files and folders ignored by Heroku
+jupyter_notebooks
