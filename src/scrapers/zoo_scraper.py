@@ -1,10 +1,8 @@
+from server_dataclasses.interfaces import DataCollectorInterface, DBHandlerInterface
 import requests
 from configparser import ConfigParser
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
-
-url = "https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat"
-
 
 def get_animal_urls():
     page = requests.get(url)
@@ -37,7 +35,13 @@ def main():
     """
     print("Running Zoo scraper.")
 
-	# Get data from the config file
-	with open('config.cfg') as f:
-		config_parser: ConfigParser = ConfigParser()
-		config_parser.read_file(f)
+	# Get data from the config file into a flat dictionary
+    cfg: ConfigParser = ConfigParser()
+    cfg.read('config/config.cfg')
+    d: dict = cfg._sections['base'] | cfg._sections['scrapers']
+
+    # Get the required db_handler
+    d['db_handler'] = next((x for x in DBHandlerInterface.__subclasses__() if x.name == d['used_db']), None)
+    print(d)
+    print(DBHandlerInterface.__subclasses__())
+    # Get the required data collector and start it
