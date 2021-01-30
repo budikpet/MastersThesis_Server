@@ -37,6 +37,7 @@ def test_main():
     """
     Test only the immediate main method, not the whole flow (i. e. make DataCollector which returns immediately).
     """
+    # TODO Implement
 
     # Check raised exceptions from wrong config
     pass

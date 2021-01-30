@@ -34,13 +34,16 @@ setup(
     zip_safe=False,
 	package_dir={'': 'src'},
     packages=find_packages(where='src'),
-    # entry_points={
-    #     'console_scripts': [
-    #         'rest_api = rest_api:main',
-	# 		'scheduler = scheduler:main',
-	# 		'scrapers = scrapers:main'
-    #     ],
-    # },
+
+    # Entrypoint structure -> 'name = <module_name>:<function_or_class_name>'
+    entry_points={
+        'masters_thesis_server.db_handlers': [
+            'mongodb = scrapers.mongodb_handler:MongoDBHandler',
+        ],
+        'masters_thesis_server.data_collectors': [
+            'zooPragueOfficialPage = scrapers.official_data_collector:OfficialDataCollector',
+        ]
+    },
     # package_data={
     #     'ghia': ['templates/*.html', 'static/*.css']
     #     },

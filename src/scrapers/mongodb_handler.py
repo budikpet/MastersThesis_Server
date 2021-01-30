@@ -12,4 +12,4 @@ class MongoDBHandler(DBHandlerInterface):
     def insert_many(self, data: list) -> bool:
         """Collects Zoo Prague lexicon data and stores it in a DB."""
         #TODO Implement
-        print("insert_many")
+        print("Ran insert_many")
