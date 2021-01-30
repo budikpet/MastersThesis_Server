@@ -32,3 +32,11 @@ def test_get_animal_urls(betamax_session: requests.Session):
     urls: list[str] = zoo_scraper.get_animal_urls(betamax_session)
 
     assert len(urls) == 800
+
+def test_main():
+    """
+    Test only the immediate main method, not the whole flow (i. e. make DataCollector which returns immediately).
+    """
+
+    # Check raised exceptions from wrong config
+    pass
