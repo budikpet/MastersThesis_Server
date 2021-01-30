@@ -14,20 +14,21 @@ fixtures_path = f"{os.path.dirname(os.path.abspath(__file__))}/fixtures"
 betamax.Betamax.register_serializer(PrettyJSONSerializer)
 
 with betamax.Betamax.configure() as config:
-	cassettes_lib = f'{fixtures_path}/cassettes'
+    cassettes_lib = f'{fixtures_path}/cassettes'
 
-	if(not os.path.isdir(cassettes_lib)):
-		os.makedirs(cassettes_lib)
+    if(not os.path.isdir(cassettes_lib)):
+        os.makedirs(cassettes_lib)
 
-	# tell Betamax where to find the cassettes
-	config.cassette_library_dir = cassettes_lib
-	config.default_cassette_options['record_mode'] = 'once'
-	config.default_cassette_options['serialize_with'] = 'prettyjson'
+    # tell Betamax where to find the cassettes
+    config.cassette_library_dir = cassettes_lib
+    config.default_cassette_options['record_mode'] = 'once'
+    config.default_cassette_options['serialize_with'] = 'prettyjson'
 
-	# Do changes before recording a cassette
-	# config.before_record(callback=zoo_response_filter)
+    # Do changes before recording a cassette
+    # config.before_record(callback=zoo_response_filter)
+
 
 def test_get_animal_urls(betamax_session: requests.Session):
-	urls: list[str] = zoo_scraper.get_animal_urls(betamax_session)
+    urls: list[str] = zoo_scraper.get_animal_urls(betamax_session)
 
-	assert len(urls) == 800
+    assert len(urls) == 800
