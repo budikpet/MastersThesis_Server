@@ -9,7 +9,8 @@ deps_required = [
 ]
 
 deps_tests = [
-	'pytest==6.2.2', 'betamax>=0.8.1', 'betamax-serializers>=0.2.1', 'flexmock>=0.10.4'
+	'pytest==6.2.2', 'betamax>=0.8.1', 'betamax-serializers>=0.2.1', 
+    'flexmock>=0.10.4', 'pytest-mock>=3.3.1'
 ]
 
 setup(
@@ -39,9 +40,6 @@ setup(
     entry_points={
         'masters_thesis_server.db_handlers': [
             'mongodb = scrapers.mongodb_handler:MongoDBHandler',
-        ],
-        'masters_thesis_server.data_collectors': [
-            'zooPragueOfficialPage = scrapers.official_data_collector:OfficialDataCollector',
         ]
     },
     # package_data={

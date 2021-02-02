@@ -16,6 +16,7 @@ q = Queue(connection=conn)
 def add_web_scraping_job(interval_time: int):
     print(
         f'JOB EXECUTED: This job is run every {interval_time}. Current time is: {datetime.now()}')
+    # TODO: If no internet connection then reschedule here or in zoo_scraper
     result = q.enqueue(run_test_job)
 
 
