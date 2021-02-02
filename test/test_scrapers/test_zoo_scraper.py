@@ -2,7 +2,9 @@ from betamax_serializers.pretty_json import PrettyJSONSerializer
 import betamax
 import requests
 import pytest
+from flexmock import flexmock
 import os
+from urllib.parse import ParseResult
 import scrapers.zoo_scraper as zoo_scraper
 
 fixtures_path = f"{os.path.dirname(os.path.abspath(__file__))}/fixtures"
@@ -29,11 +31,23 @@ with betamax.Betamax.configure() as config:
 
 
 def test_get_animal_urls(betamax_session: requests.Session):
-    urls: list[str] = zoo_scraper.get_animal_urls(betamax_session)
+    urls: list[ParseResult] = [url for url in zoo_scraper.get_animal_urls(betamax_session)]
 
     assert len(urls) == 800
+    assert None not in urls
+    assert all([url.query != '' for url in urls])
 
-def test_main():
+    # Check if IDs of animals contain duplicates
+    ids_set: set[int] = {zoo_scraper.get_animal_id(url.query) for url in urls}
+    assert len(ids_set) == len(urls)
+
+def test_run_web_scraper(betamax_session: requests.Session):
+    zoo_scraper.run_web_scraper(betamax_session, None, 20)
+    assert False
+
+    print("Done")
+
+def test_main(mocker):
     """
     Test only the immediate main method, not the whole flow (i. e. make DataCollector which returns immediately).
     """
