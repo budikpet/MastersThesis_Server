@@ -24,7 +24,7 @@ class DBHandlerInterface(metaclass=abc.ABCMeta):
         return (False in demands) or NotImplemented
 
     @abc.abstractmethod
-    def insert_many(self, data: list) -> bool:
+    def insert_many(self, data: list, **kwargs) -> bool:
         """Collects Zoo Prague lexicon data and stores it in a DB."""
         raise NotImplementedError
 

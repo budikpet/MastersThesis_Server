@@ -9,8 +9,7 @@ deps_required = [
 ]
 
 deps_tests = [
-	'pytest==6.2.2', 'betamax>=0.8.1', 'betamax-serializers>=0.2.1', 
-    'flexmock>=0.10.4', 'pytest-mock>=3.3.1'
+	'pytest==6.2.2', 'betamax>=0.8.1', 'betamax-serializers>=0.2.1', 'pytest-mock>=3.3.1'
 ]
 
 setup(
