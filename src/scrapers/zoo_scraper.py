@@ -4,8 +4,12 @@ import time
 from configparser import ConfigParser
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin, ParseResult
+import re
 
-url: str = "https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat"
+
+_URL: str = "https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat"
+_MULTI_WHITESPACE = re.compile(r"\s+")
+_OUTSIDE_INSIDE_PARANTHESIS = re.compile(r'(.*)\((.*)\)')
 
 
 def get_animal_urls(session: requests.Session) -> list[ParseResult]:
@@ -22,7 +26,7 @@ def get_animal_urls(session: requests.Session) -> list[ParseResult]:
         Iterator[list[ParseResult]]: [description]
     """
     print("gen_animal_urls")
-    page = session.get(url)
+    page = session.get(_URL)
     soup = BeautifulSoup(page.content, 'html.parser')
 
     alphabetical_groups = soup.find(id="accordionAbeceda")\
@@ -50,14 +54,18 @@ def get_animal_id(query_param: str) -> int:
     query_dict: dict = {v[0]: v[1] for v in g}
     return int(query_dict["start"])
 
+def parse_animal_data(soup: BeautifulSoup):
+    data = soup.find("div", class_='mainboxcontent largebox')
 
-def run_test_job():
-    urls = get_animal_urls()
-    print(f'JOB DONE: Num of animals currently listed: {len(urls)}')
-    return "run_test_job return"
+    # Get czech & latin name
+    names: str = data.find(class_='mainboxtitle').find("h2").text
+    tmp = _OUTSIDE_INSIDE_PARANTHESIS.search(names)
+    czech_name: str = tmp.group(1).strip()
+    latin_name: str = tmp.group(2).strip()
 
+    pass
 
-def run_web_scraper(session: requests.Session, db_handler: DBHandlerInterface, min_delay: float, **kwargs):
+def run_web_scraper(session: requests.Session, db_handler: DBHandlerInterface, min_delay: float = 10, **kwargs):
     """
     Run a Zoo Prague lexicon web scraper to fill the provided DB with data about animals.
 
@@ -69,8 +77,16 @@ def run_web_scraper(session: requests.Session, db_handler: DBHandlerInterface, m
     print("run_web_scraper")
     for url in get_animal_urls(session):
         start_time: float = time.time()
+        page = session.get(url.geturl())
+        soup: BeautifulSoup = BeautifulSoup(page.content, 'html.parser')
+
         id: int = get_animal_id(url.query)
+        animal_data = parse_animal_data(soup)
+        
         print(f'{id}: {url.geturl()}')
+
+        time_elapsed: float = time.time() - start_time
+        time.sleep(min_delay - time_elapsed)
 
 
 def main():
@@ -85,6 +101,7 @@ def main():
     cfg: ConfigParser = ConfigParser()
     cfg.read('config/config.cfg')
     cfg_dict: dict = cfg._sections['base'] | cfg._sections['scrapers']
+    cfg_dict["min_delay"] = float(cfg_dict["min_delay"])
 
     if cfg_dict['used_db'] is None:
         raise Exception(f'No DBHandler specified in config file.')
@@ -96,3 +113,9 @@ def main():
 
     with requests.Session() as session:
         run_web_scraper(session, **cfg_dict)
+
+
+def run_test_job():
+    urls = get_animal_urls()
+    print(f'JOB DONE: Num of animals currently listed: {len(urls)}')
+    return "run_test_job return"

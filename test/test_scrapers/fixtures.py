@@ -1,8 +1,8 @@
 from server_dataclasses.interfaces import DBHandlerInterface
 
 
-class MongoDBHandler(DBHandlerInterface):
-    """Implementation of a DBHandler which uses remote MongoDB.
+class TestHandler(DBHandlerInterface):
+    """Implementation of a testing DBHandler which uses local filesystem.
 
     Args:
         DBHandlerInterface ([type]): Interface it implements.
