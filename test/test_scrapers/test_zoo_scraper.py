@@ -2,6 +2,7 @@ from betamax_serializers.pretty_json import PrettyJSONSerializer
 import betamax
 import requests
 import pytest
+import time
 from pytest_mock.plugin import MockerFixture
 import os
 from urllib.parse import urlparse, ParseResult
@@ -63,6 +64,7 @@ def test_run_web_scraper_small(betamax_session: requests.Session, mocker: Mocker
         betamax_session (requests.Session): [description]
         mocker (MockerFixture): A fixture of pytest_mock.
     """
+    sleep_time: float = 5
     get_animal_id_spy = mocker.spy(zoo_scraper, 'get_animal_id')
 
     # Patch the get_animal_urls function
@@ -78,10 +80,14 @@ def test_run_web_scraper_small(betamax_session: requests.Session, mocker: Mocker
     mocker.patch('scrapers.zoo_scraper.get_animal_urls', return_value=urls)
 
     # Patch time.sleep function
-    mocker.patch('time.sleep', return_value=True)
+    ## Can't patch time.sleep by just always returning True because time.sleep is used in calls a lot by the system with times around 0.005. Mocking it that way caused CPU overheating
+    ## The way this works is that the sleep_lambda is called and if argument is lower than sleep_time then original time.sleep function is executed
+    unmocked_sleep = time.sleep
+    sleep_lambda = lambda secs: True if (sleep_time - 2 <= secs <= sleep_time) else unmocked_sleep(secs)
+    mocker.patch('time.sleep', new=sleep_lambda)
 
     # Act
-    zoo_scraper.run_web_scraper(betamax_session, TestHandler(), 2)
+    zoo_scraper.run_web_scraper(betamax_session, TestHandler(), sleep_time)
 
     # Assert
     assert get_animal_id_spy.call_count == len(urls)
