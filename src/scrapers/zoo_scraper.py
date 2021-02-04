@@ -1,11 +1,11 @@
 from server_dataclasses.interfaces import DBHandlerInterface
+from server_dataclasses.models import AnimalData
 import requests
 import time
+import re
 from configparser import ConfigParser
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin, ParseResult
-import re
-
 
 _URL: str = "https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat"
 _MULTI_WHITESPACE = re.compile(r"\s+")
@@ -54,14 +54,18 @@ def get_animal_id(query_param: str) -> int:
     query_dict: dict = {v[0]: v[1] for v in g}
     return int(query_dict["start"])
 
-def parse_animal_data(soup: BeautifulSoup):
+def parse_animal_data(soup: BeautifulSoup, url: ParseResult) -> AnimalData:
+    res: AnimalData = AnimalData()
     data = soup.find("div", class_='mainboxcontent largebox')
+
+    # Parse id
+    res.id = get_animal_id(url.query)
 
     # Get czech & latin name
     names: str = data.find(class_='mainboxtitle').find("h2").text
     tmp = _OUTSIDE_INSIDE_PARANTHESIS.search(names)
-    czech_name: str = tmp.group(1).strip()
-    latin_name: str = tmp.group(2).strip()
+    res.name = tmp.group(1).strip()
+    res.latin_name = tmp.group(2).strip()
 
     pass
 
@@ -80,8 +84,7 @@ def run_web_scraper(session: requests.Session, db_handler: DBHandlerInterface, m
         page = session.get(url.geturl())
         soup: BeautifulSoup = BeautifulSoup(page.content, 'html.parser')
 
-        id: int = get_animal_id(url.query)
-        animal_data = parse_animal_data(soup)
+        animal_data = parse_animal_data(soup, url)
         
         print(f'{id}: {url.geturl()}')
 
