@@ -1,4 +1,8 @@
 from server_dataclasses.interfaces import DBHandlerInterface
+from server_dataclasses.models import AnimalData
+import json
+from pathlib import Path
+import os
 
 
 class TestHandler(DBHandlerInterface):
@@ -10,7 +14,17 @@ class TestHandler(DBHandlerInterface):
 
     name: str = 'mongodb'
 
+    def __init__(self, output_dir):
+        self.output_dir = Path(output_dir)
+
+        if(not os.path.isdir(self.output_dir)):
+            os.makedirs(self.output_dir)
+
     def insert_many(self, data: list, **kwargs) -> bool:
         """Collects Zoo Prague lexicon data and stores it in a DB."""
-        # TODO Implement
-        print(f"Ran insert_many for data: '{data}'")
+        for animal in data:
+            name = animal.name.replace(' ', '_').lower()
+            with (self.output_dir / f"{name}.json").open('w', encoding='utf8') as outfile:  
+                json.dump(animal.__dict__, outfile, indent = 4, ensure_ascii=False) 
+
+        return True
