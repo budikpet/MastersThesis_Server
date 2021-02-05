@@ -25,7 +25,6 @@ def get_animal_urls(session: requests.Session) -> list[ParseResult]:
     Yields:
         Iterator[list[ParseResult]]: [description]
     """
-    print("gen_animal_urls")
     page = session.get(_URL.geturl())
     soup = BeautifulSoup(page.content, 'html.parser')
 
@@ -184,12 +183,15 @@ def run_web_scraper(session: requests.Session, db_handler: DBHandlerInterface, m
         db_handler (DBHandlerInterface): A DBHandlerInterface instance of chosen database used to store data from Zoo Prague lexicon.
         min_delay (float): Minimum time in seconds to wait between downloads of pages to scrape.
     """
+    i = 0
     animals_data: list[AnimalData] = list()
     for url in get_animal_urls(session):
         start_time: float = time.time()
         page = session.get(url.geturl())
         soup: BeautifulSoup = BeautifulSoup(page.content, 'html.parser')
 
+        print(f'{i}. {url.geturl()}')
+        i += 1
         animal_data = parse_animal_data(soup, url)
         animals_data.append(animal_data)
 
@@ -217,12 +219,12 @@ def main():
         raise Exception(f'No DBHandler specified in config file.')
 
     # Get the required db_handler instance
-    cfg_dict['db_handler'] = next((x() for x in DBHandlerInterface.__subclasses__() if x.name == cfg_dict['used_db']), None)
-    if cfg_dict['db_handler'] is None:
+    handler: DBHandlerInterface = next((handler for handler in DBHandlerInterface.__subclasses__() if handler.name == cfg_dict['used_db']), None)
+    if handler is None:
         raise Exception(f'DBHandler called "{cfg_dict["used_db"]}" not found.')
 
-    with requests.Session() as session:
-        run_web_scraper(session, **cfg_dict)
+    with requests.Session() as session, handler(**cfg_dict) as handler_instance:
+        run_web_scraper(session, db_handler=handler_instance, **cfg_dict)
 
 
 def run_test_job():

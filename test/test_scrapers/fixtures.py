@@ -19,6 +19,12 @@ class JSONTestHandler(DBHandlerInterface):
 
         if(not os.path.isdir(self.output_dir)):
             os.makedirs(self.output_dir)
+    
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        return True
 
     def insert_many(self, data: list, **kwargs) -> bool:
         """Collects Zoo Prague lexicon data and stores it in a DB."""
@@ -40,6 +46,12 @@ class TestHandler(DBHandlerInterface):
 
     def __init__(self, output: list[AnimalData]):
         self.output = output
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        return True
 
     def insert_many(self, data: list, **kwargs) -> bool:
         """Collects Zoo Prague lexicon data and stores it in a DB."""

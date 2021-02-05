@@ -18,10 +18,22 @@ class DBHandlerInterface(metaclass=abc.ABCMeta):
     @classmethod
     def __subclasshook__(cls, subclass):
         demands: list[bool] = [
+            hasattr(subclass, '__enter__'),
+            callable(subclass.__enter__),
+            hasattr(subclass, '__exit__'),
+            callable(subclass.__exit__),
             hasattr(subclass, 'insert_many'),
             callable(subclass.insert_many)
         ]
         return (False in demands) or NotImplemented
+
+    @abc.abstractmethod
+    def __enter__(self):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def __exit__(self, exc_type, exc_value, traceback):
+        raise NotImplementedError
 
     @abc.abstractmethod
     def insert_many(self, data: list, **kwargs) -> bool:
