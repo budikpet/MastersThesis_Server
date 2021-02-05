@@ -8,6 +8,8 @@ import os
 from urllib.parse import urlparse, ParseResult
 import scrapers.zoo_scraper as zoo_scraper
 from fixtures import TestHandler
+from server_dataclasses.models import AnimalData
+from pathlib import Path
 
 fixtures_path = f"{os.path.dirname(os.path.abspath(__file__))}/fixtures"
 
@@ -52,7 +54,7 @@ def test_get_animal_urls(betamax_session: requests.Session):
 
 
 # TODO: Add a test DBHandler using a fixture.
-def test_run_web_scraper_small(betamax_session: requests.Session, mocker: MockerFixture):
+def test_run_web_scraper_small(betamax_session: requests.Session, mocker: MockerFixture, tmpdir):
     """
     Test the whole workflow of Zoo Prague lexicon web scraper.
 
@@ -74,7 +76,8 @@ def test_run_web_scraper_small(betamax_session: requests.Session, mocker: Mocker
         "https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat?d=321-zelva-pardali&start=321",
         "https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat?d=496-sova-palena&start=496",
         "https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat?d=643-tygr-ussurijsky&start=643",
-        "https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat?d=306-tucnak-humboldtuv&start=306"
+        "https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat?d=306-tucnak-humboldtuv&start=306",
+        "https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat?d=100-bezhrbi-velbloudi&start=100"
     ]
     urls: list[ParseResult] = [urlparse(url) for url in urls]
     mocker.patch('scrapers.zoo_scraper.get_animal_urls', return_value=urls)
@@ -87,9 +90,14 @@ def test_run_web_scraper_small(betamax_session: requests.Session, mocker: Mocker
     mocker.patch('time.sleep', new=sleep_lambda)
 
     # Act
-    zoo_scraper.run_web_scraper(betamax_session, TestHandler(), sleep_time)
+    tmp_dir: Path = Path(tmpdir.strpath)
+    test_dir: Path = Path(__file__).parent.absolute() / 'fixtures' / 'test_run_web_scraper_small'
+    assert any(test_dir.iterdir())  # Check if test_dir is not empty
+
+    zoo_scraper.run_web_scraper(betamax_session, TestHandler(tmp_dir), sleep_time)
 
     # Assert
     assert get_animal_id_spy.call_count == len(urls)
+    assert len([f for f in tmp_dir.iterdir() if f.suffix == '.json']) == len(urls)
 
-    print("Done")
+    pass

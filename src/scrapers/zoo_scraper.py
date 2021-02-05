@@ -169,18 +169,19 @@ def run_web_scraper(session: requests.Session, db_handler: DBHandlerInterface, m
         db_handler (DBHandlerInterface): A DBHandlerInterface instance of chosen database used to store data from Zoo Prague lexicon.
         min_delay (float): Minimum time in seconds to wait between downloads of pages to scrape.
     """
-    print("run_web_scraper")
+    animals_data: list[AnimalData] = list()
     for url in get_animal_urls(session):
         start_time: float = time.time()
         page = session.get(url.geturl())
         soup: BeautifulSoup = BeautifulSoup(page.content, 'html.parser')
 
         animal_data = parse_animal_data(soup, url)
-        
-        print(f'{id}: {url.geturl()}')
+        animals_data.append(animal_data)
 
         time_elapsed: float = time.time() - start_time
         time.sleep(min_delay - time_elapsed)
+    
+    db_handler.insert_many(animals_data)
 
 
 def main():
