@@ -21,12 +21,14 @@ class AnimalData():
     order: str
     order_latin: str
 
+    # "Rozšíření"
     continent: str
     continent_detail: str
 
     biotop: str
     biotop_detail: str
 
+    # "Potrava"
     food: str
     food_detail: str
 
