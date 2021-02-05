@@ -4,10 +4,10 @@ import requests
 import time
 import re
 from configparser import ConfigParser
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 from urllib.parse import urlparse, urljoin, ParseResult
 
-_URL: str = "https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat"
+_URL: ParseResult = urlparse("https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat")
 _MULTI_WHITESPACE = re.compile(r"\s+")
 _OUTSIDE_INSIDE_PARANTHESIS = re.compile(r'(.*)\((.*)\)')
 
@@ -26,7 +26,7 @@ def get_animal_urls(session: requests.Session) -> list[ParseResult]:
         Iterator[list[ParseResult]]: [description]
     """
     print("gen_animal_urls")
-    page = session.get(_URL)
+    page = session.get(_URL.geturl())
     soup = BeautifulSoup(page.content, 'html.parser')
 
     alphabetical_groups = soup.find(id="accordionAbeceda")\
@@ -54,20 +54,71 @@ def get_animal_id(query_param: str) -> int:
     query_dict: dict = {v[0]: v[1] for v in g}
     return int(query_dict["start"])
 
+def parse_unlinked_paragraphs(data: Tag) -> dict[str, str]:
+    """
+    Parse interesting_data and about_placement_in_zoo_prague Animal data.
+    This data consists of <h3> tags and multiple <p> tags which. 
+    It also might not always be flat hierarchy which makes it difficult to parse.
+
+    Args:
+        data (Tag): Part of parsed input data where the Animal data we are looking for is located.
+
+    Returns:
+        dict[str, str]: Key is the paragraph title (<h3> tag), value is the whole paragraph (joined <p> tags).
+    """
+    # TODO: Need to make proper test for this one since it probably doesn't work properly all the time. Need to test all combinations of non-flat hierarchies.
+    res: dict[str, list[str]] = dict()
+    last_h3_text: str = ''
+    tags_to_check: set[str] = {'h3', 'p'}
+    for tag in data.find_all(tags_to_check):
+        if(tag.name == 'h3'):
+            # Following <p> tags now belong to this <h3> tag
+            last_h3_text = tag.text
+            res[last_h3_text] = set()
+            continue
+
+        if(len(tag.contents) == 1):
+            # Tag is flat, add it to the data
+            res[last_h3_text].add(tag.text.strip())
+        else:
+            # Tag has children.
+            children_names = [t.name for t in tag.children]
+            if(tags_to_check.isdisjoint(children_names)):
+                # Tag has children but these children aren't <h3> or <p> tags
+                # If it had either <h3> or <p> tag it would cause duplicates
+                res[last_h3_text].add(tag.text.strip())
+    
+    return {key: '\n'.join(value).strip() for key, value in res.items()}
+
 def parse_animal_data(soup: BeautifulSoup, url: ParseResult) -> AnimalData:
     res: AnimalData = AnimalData()
+
     data = soup.find("div", class_='mainboxcontent largebox')
+    mainboxtitle = data.find(class_='mainboxtitle')
+    para1, para2 = data.find_all('div', class_='para')
 
     # Parse id
     res.id = get_animal_id(url.query)
 
-    # Get czech & latin name
-    names: str = data.find(class_='mainboxtitle').find("h2").text
+    # Parse czech & latin name
+    names: str = mainboxtitle.find("h2").text
     tmp = _OUTSIDE_INSIDE_PARANTHESIS.search(names)
     res.name = tmp.group(1).strip()
     res.latin_name = tmp.group(2).strip()
 
-    pass
+    # Parse short summary & image URL
+    res.base_summary = para1.find('strong').text.strip()
+    res.image = _URL.hostname + para1.find('a', class_ = 'thumbnail')["href"]
+
+    # Parse interesting_data and about_placement_in_zoo_prague data
+    unlinked_data_dict: dict[str, str] = parse_unlinked_paragraphs(para2)
+    res.interesting_data = unlinked_data_dict['Zajímavosti']
+    res.about_placement_in_zoo_prague = unlinked_data_dict['Chov v Zoo Praha']
+
+    # Parse location_in_zoo
+
+
+    return res
 
 def run_web_scraper(session: requests.Session, db_handler: DBHandlerInterface, min_delay: float = 10, **kwargs):
     """
