@@ -52,8 +52,33 @@ def test_get_animal_urls(betamax_session: requests.Session):
     ids_set: set[int] = {zoo_scraper.get_animal_id(url.query) for url in urls}
     assert len(ids_set) == len(urls)
 
+def test_run_web_scraper_noconnection(mocker: MockerFixture):
+    """
+    Test a case when there is no HTTP connection.
 
-# TODO: Add a test DBHandler using a fixture.
+    Mocks session.get to raise exception.
+
+    Args:
+        mocker (MockerFixture): [description]
+    """
+    # Patch
+    urls: list[str] = [
+        "https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat?d=320-zelva-obrovska&start=320"
+    ]
+    urls: list[ParseResult] = [urlparse(url) for url in urls]
+    mocker.patch('scrapers.zoo_scraper.get_animal_urls', return_value=urls)
+
+    mocker.patch.object(requests.Session, 'get', side_effect = requests.exceptions.RequestException('Dummy requests exception raised'))
+
+    # Act
+    session = requests.Session()
+    # zoo_scraper.run_web_scraper(session, None, 1)
+
+    # Assert
+    # TODO: Need to think about what to do if connection is lost during scraping. Probably going to add longer wait in that case and restart the script from that animal. Maybe reschedule after many retries. That should be enough for a cloud.
+
+    pass
+
 def test_run_web_scraper_small(betamax_session: requests.Session, mocker: MockerFixture):
     """
     Test the whole workflow of Zoo Prague lexicon web scraper.
@@ -99,8 +124,8 @@ def test_run_web_scraper_small(betamax_session: requests.Session, mocker: Mocker
 
     tygr: AnimalData = next(filter(lambda animal: 'tygr' in animal.name.lower(), output), None)
     assert tygr.is_currently_available
-    assert tygr.sizes is ''
-    assert tygr.reproduction is ''
+    assert tygr.sizes == ''
+    assert tygr.reproduction == ''
     assert tygr.about_placement_in_zoo_prague is None
     assert tygr.location_in_zoo is None
     assert tygr.food_detail is None
