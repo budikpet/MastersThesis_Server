@@ -5,7 +5,7 @@ from pathlib import Path
 import os
 
 
-class TestHandler(DBHandlerInterface):
+class JSONTestHandler(DBHandlerInterface):
     """Implementation of a testing DBHandler which uses local filesystem.
 
     Args:
@@ -26,5 +26,23 @@ class TestHandler(DBHandlerInterface):
             name = animal.name.replace(' ', '_').lower()
             with (self.output_dir / f"{name}.json").open('w', encoding='utf8') as outfile:  
                 json.dump(animal.__dict__, outfile, indent = 4, ensure_ascii=False) 
+
+        return True
+
+class TestHandler(DBHandlerInterface):
+    """Implementation of a testing DBHandler which uses local filesystem.
+
+    Args:
+        DBHandlerInterface ([type]): Interface it implements.
+    """
+
+    name: str = 'mongodb'
+
+    def __init__(self, output: list[AnimalData]):
+        self.output = output
+
+    def insert_many(self, data: list, **kwargs) -> bool:
+        """Collects Zoo Prague lexicon data and stores it in a DB."""
+        self.output.extend(data) 
 
         return True

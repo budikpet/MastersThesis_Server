@@ -54,7 +54,7 @@ def test_get_animal_urls(betamax_session: requests.Session):
 
 
 # TODO: Add a test DBHandler using a fixture.
-def test_run_web_scraper_small(betamax_session: requests.Session, mocker: MockerFixture, tmpdir):
+def test_run_web_scraper_small(betamax_session: requests.Session, mocker: MockerFixture):
     """
     Test the whole workflow of Zoo Prague lexicon web scraper.
 
@@ -90,14 +90,11 @@ def test_run_web_scraper_small(betamax_session: requests.Session, mocker: Mocker
     mocker.patch('time.sleep', new=sleep_lambda)
 
     # Act
-    tmp_dir: Path = Path(tmpdir.strpath)
-    test_dir: Path = Path(__file__).parent.absolute() / 'fixtures' / 'test_run_web_scraper_small'
-    assert any(test_dir.iterdir())  # Check if test_dir is not empty
-
-    zoo_scraper.run_web_scraper(betamax_session, TestHandler(tmp_dir), sleep_time)
+    output: list[AnimalData] = list()
+    zoo_scraper.run_web_scraper(betamax_session, TestHandler(output), sleep_time)
 
     # Assert
     assert get_animal_id_spy.call_count == len(urls)
-    assert len([f for f in tmp_dir.iterdir() if f.suffix == '.json']) == len(urls)
+    assert len(output) == len(urls)
 
     pass
