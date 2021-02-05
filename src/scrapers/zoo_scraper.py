@@ -119,6 +119,16 @@ def __add_parsed_table_data__(res: AnimalData, attrs: list[str], parsed_value: s
         setattr(res, attrs[0], parsed_value.strip())
 
 def parse_animal_data(soup: BeautifulSoup, url: ParseResult) -> AnimalData:
+    """
+    Parses all data from the given page into the AnimalData object.
+
+    Args:
+        soup (BeautifulSoup): Page to parse.
+        url (ParseResult): URL of the page to parse.
+
+    Returns:
+        AnimalData: Object with data that was parsed from the page.
+    """
     res: AnimalData = AnimalData()
 
     data = soup.find("div", class_='mainboxcontent largebox')
@@ -157,6 +167,11 @@ def parse_animal_data(soup: BeautifulSoup, url: ParseResult) -> AnimalData:
     res.sizes = table_data.get('Rozměry')
     res.reproduction = table_data.get('Rozmnožování')
     res.location_in_zoo = table_data.get('Umístění v Zoo Praha')
+
+    # Check is_currently_available
+    if(res.about_placement_in_zoo_prague is not None and 'nechováme' in res.about_placement_in_zoo_prague.lower()):
+        # Some animals have indication that they aren't located in Zoo Prague
+        res.is_currently_available = False
 
     return res
 
