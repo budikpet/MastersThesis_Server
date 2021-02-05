@@ -90,6 +90,34 @@ def parse_unlinked_paragraphs(data: Tag) -> dict[str, str]:
     
     return {key: '\n'.join(value).strip() for key, value in res.items()}
 
+def parse_table_data(table: Tag) -> dict[str, str]:
+    """
+    Parses data from <table> tag found at Zoo Prague lexicon site.
+
+    Args:
+        table (Tag): The <table> tag.
+
+    Returns:
+        dict[str, str]: Key is the title of the row.
+    """
+    res: dict[str, str] = dict()
+    for row in table.find_all('tr'):
+        data = row.find_all(['th', 'td'])
+        res[data[0].text.strip()] = data[1].text.strip() if len(data) == 2 else None
+
+    return res
+
+def __add_parsed_table_data__(res: AnimalData, attrs: list[str], parsed_value: str):
+    if parsed_value is None:
+        return
+
+    tmp = _OUTSIDE_INSIDE_PARANTHESIS.search(parsed_value)
+    if (tmp is not None):
+        setattr(res, attrs[0], tmp.group(1).strip())
+        setattr(res, attrs[1], tmp.group(2).strip())
+    else:
+        setattr(res, attrs[0], parsed_value.strip())
+
 def parse_animal_data(soup: BeautifulSoup, url: ParseResult) -> AnimalData:
     res: AnimalData = AnimalData()
 
@@ -112,11 +140,23 @@ def parse_animal_data(soup: BeautifulSoup, url: ParseResult) -> AnimalData:
 
     # Parse interesting_data and about_placement_in_zoo_prague data
     unlinked_data_dict: dict[str, str] = parse_unlinked_paragraphs(para2)
-    res.interesting_data = unlinked_data_dict['Zajímavosti']
-    res.about_placement_in_zoo_prague = unlinked_data_dict['Chov v Zoo Praha']
+    res.interesting_data = unlinked_data_dict.get('Zajímavosti')
+    res.about_placement_in_zoo_prague = unlinked_data_dict.get('Chov v Zoo Praha')
 
-    # Parse location_in_zoo
+    # Parse table data
+    table_data: dict[str, str] = dict()
+    for table in para2.find_all('table'):
+        table_data |= parse_table_data(table)
 
+    # Add parsed table_data into res
+    __add_parsed_table_data__(res, ['class_', 'class_latin'], table_data.get('Třída'))
+    __add_parsed_table_data__(res, ['order', 'order_latin'], table_data.get('Řád'))
+    __add_parsed_table_data__(res, ['continent', 'continent_detail'], table_data.get('Rozšíření'))
+    __add_parsed_table_data__(res, ['biotop', 'biotop_detail'], table_data.get('Biotop'))
+    __add_parsed_table_data__(res, ['food', 'food_detail'], table_data.get('Potrava'))
+    res.sizes = table_data.get('Rozměry')
+    res.reproduction = table_data.get('Rozmnožování')
+    res.location_in_zoo = table_data.get('Umístění v Zoo Praha')
 
     return res
 
