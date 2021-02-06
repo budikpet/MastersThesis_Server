@@ -28,5 +28,7 @@ class MongoDBHandler(DBHandlerInterface):
 
     def insert_many(self, data: list, **kwargs) -> bool:
         """Collects Zoo Prague lexicon data and stores it in a DB."""
-        # TODO Implement
-        print(f"Ran insert_many for data: '{data}'")
+        dicts = [animal.__dict__ for animal in data]
+        self.coll.insert_many(dicts)
+
+        return True

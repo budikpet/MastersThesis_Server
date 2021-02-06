@@ -6,6 +6,7 @@ import re
 from configparser import ConfigParser
 from bs4 import BeautifulSoup, Tag
 from urllib.parse import urlparse, urljoin, ParseResult
+import traceback
 
 _URL: ParseResult = urlparse("https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat")
 _MULTI_WHITESPACE = re.compile(r"\s+")
@@ -139,13 +140,13 @@ def parse_animal_data(soup: BeautifulSoup, url: ParseResult) -> AnimalData:
 
     # Parse czech & latin name
     names: str = mainboxtitle.find("h2").text
-    tmp = _OUTSIDE_INSIDE_PARANTHESIS.search(names)
-    res.name = tmp.group(1).strip()
-    res.latin_name = tmp.group(2).strip()
+    __add_parsed_table_data__(res, ['name', 'latin_name'], names)
 
     # Parse short summary & image URL
     res.base_summary = para1.find('strong').text.strip()
-    res.image = _URL.hostname + para1.find('a', class_ = 'thumbnail')["href"]
+    tmp = para1.find('a', class_ = 'thumbnail')
+    if(tmp is not None):
+        res.image = _URL.hostname + tmp["href"]
 
     # Parse interesting_data and about_placement_in_zoo_prague data
     unlinked_data_dict: dict[str, str] = parse_unlinked_paragraphs(para2)
@@ -186,8 +187,8 @@ def run_web_scraper(session: requests.Session, db_handler: DBHandlerInterface, m
     i = 0
     animals_data: list[AnimalData] = list()
     for url in get_animal_urls(session):
-        start_time: float = time.time()
         page = session.get(url.geturl())
+        start_time: float = time.time()
         soup: BeautifulSoup = BeautifulSoup(page.content, 'html.parser')
 
         print(f'{i}. {url.geturl()}')
@@ -195,8 +196,11 @@ def run_web_scraper(session: requests.Session, db_handler: DBHandlerInterface, m
         animal_data = parse_animal_data(soup, url)
         animals_data.append(animal_data)
 
-        time_elapsed: float = time.time() - start_time
-        time.sleep(min_delay - time_elapsed)
+        elapsed_time: float = time.time() - start_time
+        time_to_sleep: float = min_delay - elapsed_time
+        print(f'\t\tElapsed time: {elapsed_time} s')
+        if time_to_sleep > 0:
+            time.sleep(time_to_sleep)
     
     db_handler.insert_many(animals_data)
 
@@ -215,7 +219,7 @@ def main():
     cfg_dict: dict = cfg._sections['base'] | cfg._sections['scrapers']
     cfg_dict["min_delay"] = float(cfg_dict["min_delay"])
 
-    if cfg_dict['used_db'] is None:
+    if cfg_dict.get('used_db') is None:
         raise Exception(f'No DBHandler specified in config file.')
 
     # Get the required db_handler instance
@@ -223,8 +227,12 @@ def main():
     if handler is None:
         raise Exception(f'DBHandler called "{cfg_dict["used_db"]}" not found.')
 
+    # TODO: Check how to do it properly. Couldn't put the with statement inside try block since it didn't register some exceptions then
     with requests.Session() as session, handler(**cfg_dict) as handler_instance:
-        run_web_scraper(session, db_handler=handler_instance, **cfg_dict)
+        try:
+            run_web_scraper(session, db_handler=handler_instance, **cfg_dict)
+        except Exception as ex:
+            traceback.print_exc()
 
 
 def run_test_job():
