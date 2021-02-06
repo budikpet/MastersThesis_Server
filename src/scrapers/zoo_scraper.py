@@ -7,10 +7,14 @@ from configparser import ConfigParser
 from bs4 import BeautifulSoup, Tag
 from urllib.parse import urlparse, urljoin, ParseResult
 import traceback
+import logging
 
 _URL: ParseResult = urlparse("https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat")
 _MULTI_WHITESPACE = re.compile(r"\s+")
 _OUTSIDE_INSIDE_PARANTHESIS = re.compile(r'(.*)\((.*)\)')
+
+# TODO: Do logging config in one file which should be used by all modules
+logging.basicConfig(format = '%(asctime)s - %(name)s - %(levelname)s: %(message)s', filename='example.log', encoding='utf-8', level=logging.DEBUG)
 
 
 def get_animal_urls(session: requests.Session) -> list[ParseResult]:
@@ -193,8 +197,15 @@ def run_web_scraper(session: requests.Session, db_handler: DBHandlerInterface, m
 
         print(f'{i}. {url.geturl()}')
         i += 1
-        animal_data = parse_animal_data(soup, url)
-        animals_data.append(animal_data)
+        try:
+            if i % 2 == 0:
+                raise Exception("test exc")
+            animal_data = parse_animal_data(soup, url)
+            animals_data.append(animal_data)
+        except:
+            logging.error(f'Error occured when parsing: {url.geturl()}')
+            logging.error(traceback.format_exc())
+            continue
 
         elapsed_time: float = time.time() - start_time
         time_to_sleep: float = min_delay - elapsed_time
@@ -236,6 +247,6 @@ def main():
 
 
 def run_test_job():
-    urls = get_animal_urls()
-    print(f'JOB DONE: Num of animals currently listed: {len(urls)}')
+    main()
+    print(f'JOB DONE')
     return "run_test_job return"
