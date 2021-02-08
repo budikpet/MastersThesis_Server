@@ -18,7 +18,7 @@ setup(
     version='0.0.0.1',
     description="""A Python web server created for my Master's thesis.""",
     long_description=long_description,
-    keywords="ghia,budikpet, web, cli",
+    keywords="budikpet, web, fastapi, web scraping",
     setup_requires=['pytest-runner'],
     install_requires=deps_required,
     tests_require=deps_tests,

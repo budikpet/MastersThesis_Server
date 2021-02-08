@@ -28,10 +28,8 @@ def main():
     #               'day at 22:00'], trigger='cron', minute=0, hour=2, misfire_grace_time=None)
     # sched.add_job(add_web_scraping_job, args=['last day of the month at 22:00'],
     #               trigger='cron', day='last', minute=0, hour=2, misfire_grace_time=None)
-    # sched.add_job(add_web_scraping_job, args=[
-    #               '45 minutes'], trigger='interval', minutes=45)
-    # sched.add_job(add_web_scraping_job, args = ['1 minute'], trigger='interval', minutes=1)
+    sched.add_job(add_web_scraping_job, args=['45 minutes'], trigger='interval', minutes=45)
+    sched.add_job(add_web_scraping_job, args = ['1 minute'], trigger='interval', minutes=1)
 
     print("Jobs scheduled.")
-    result = q.enqueue(run_test_job)
-    # sched.start()
+    sched.start()

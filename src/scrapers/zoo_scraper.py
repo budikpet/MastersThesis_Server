@@ -14,7 +14,7 @@ _MULTI_WHITESPACE = re.compile(r"\s+")
 _OUTSIDE_INSIDE_PARANTHESIS = re.compile(r'(.*)\((.*)\)')
 
 # TODO: Do logging config in one file which should be used by all modules
-logging.basicConfig(format = '%(asctime)s - %(name)s - %(levelname)s: %(message)s', filename='example.log', encoding='utf-8', level=logging.DEBUG)
+logging.basicConfig(format = '%(asctime)s - %(name)s - %(levelname)s: %(message)s', filename='example.log', encoding='utf-8', level=logging.INFO)
 
 
 def get_animal_urls(session: requests.Session) -> list[ParseResult]:
@@ -198,8 +198,6 @@ def run_web_scraper(session: requests.Session, db_handler: DBHandlerInterface, m
         print(f'{i}. {url.geturl()}')
         i += 1
         try:
-            if i % 2 == 0:
-                raise Exception("test exc")
             animal_data = parse_animal_data(soup, url)
             animals_data.append(animal_data)
         except:
@@ -243,10 +241,13 @@ def main():
         try:
             run_web_scraper(session, db_handler=handler_instance, **cfg_dict)
         except Exception as ex:
-            traceback.print_exc()
+            logging.error('Unknown error occured')
+            logging.error(traceback.format_exc())
 
 
 def run_test_job():
-    main()
-    print(f'JOB DONE')
+    # main()
+    with requests.Session() as s:
+        res = [u for u in get_animal_urls(s)]
+    print(f'JOB DONE: Found {len(res)}')
     return "run_test_job return"
