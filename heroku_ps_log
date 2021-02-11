@@ -4,4 +4,4 @@
 10.2.   19:40   Aplikace využila 213h 10m
 11.2.   00:10   Aplikace využila 213h 10m
 11.2.   10:14   Aplikace využila 237h 25m, tedy v noci dochází k updatu hodnot v `heroku ps`.
-11.2.   10:50   Aplikace využila 237h 25m
+11.2.   11:04   Aplikace využila 237h 25m, spuštěn clock s 20min schedulem + worker 
