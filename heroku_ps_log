@@ -1,8 +1,0 @@
-8.2.    13:21   Aplikace využila 188h 41m, zapnut clock s 45min a 1min schedulem
-10.2.   11:52   Aplikace využila 213h 10m
-10.2.   13:58   Aplikace využila 213h 10m, ve 13:51 došlo k restartování scheduler dyno
-10.2.   19:40   Aplikace využila 213h 10m
-11.2.   00:10   Aplikace využila 213h 10m
-11.2.   10:14   Aplikace využila 237h 25m, tedy v noci dochází k updatu hodnot v `heroku ps`.
-11.2.   11:04   Aplikace využila 237h 25m, spuštěn clock s 20min schedulem + worker
-13.2.   11:58   Aplikace využila 319h 40m

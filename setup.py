@@ -15,7 +15,7 @@ deps_tests = [
 
 setup(
     name='masters_thesis_server',
-    version='0.0.0.1',
+    version='0.0.1',
     description="""A Python web server created for my Master's thesis.""",
     long_description=long_description,
     keywords="budikpet, web, fastapi, web scraping",
