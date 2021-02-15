@@ -241,7 +241,7 @@ def run_web_scraper(session: requests.Session, db_handler: DBHandlerInterface, c
             time.sleep(time_to_sleep)
     
     db_handler.drop_collection(collection_name=collection_name)
-    db_handler.rename_collection(collection_name=collection_name)
+    db_handler.rename_collection(collection_new_name=collection_name, collection_name=tmp_coll_name)
     db_handler.update_one({'_id': 0}, {'$set': {'last_update_end': datetime.now()}}, upsert=True, collection_name='metadata')
 
 

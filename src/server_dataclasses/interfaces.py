@@ -82,10 +82,31 @@ class DBHandlerInterface(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def rename_collection(self, collection_new_name: str, db_name: str = None, collection_name: str = None, **kwargs) -> bool:
+        """
+        Rename collection.
+
+        Args:
+            collection_new_name (str): New name of the collection
+            db_name (str, optional): Name of the database where the collection is. Defaults to None.
+            collection_name (str, optional): Name of the collection which is to be used. Defaults to None.
+
+        Returns:
+            bool: [description]
+        """
         raise NotImplementedError
 
     @abc.abstractmethod
     def drop_collection(self, db_name: str = None, collection_name: str = None, **kwargs) -> bool:
+        """
+        Drop collection if it exists.
+
+        Args:
+            db_name (str, optional): Name of the database where the collection is. Defaults to None.
+            collection_name (str, optional): Name of the collection which is to be used. Defaults to None.
+
+        Returns:
+            bool: [description]
+        """
         raise NotImplementedError
 
 
