@@ -26,6 +26,10 @@ class DBHandlerInterface(metaclass=abc.ABCMeta):
             callable(subclass.update_one),
             hasattr(subclass, 'insert_one'),
             callable(subclass.insert_one),
+            hasattr(subclass, 'rename'),
+            callable(subclass.rename),
+            hasattr(subclass, 'drop_collection'),
+            callable(subclass.drop_collection),
             hasattr(subclass, 'insert_many'),
             callable(subclass.insert_many)
         ]
@@ -74,6 +78,14 @@ class DBHandlerInterface(metaclass=abc.ABCMeta):
         Returns:
             bool: [description]
         """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def rename_collection(self, collection_new_name: str, db_name: str = None, collection_name: str = None, **kwargs) -> bool:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def drop_collection(self, db_name: str = None, collection_name: str = None, **kwargs) -> bool:
         raise NotImplementedError
 
 

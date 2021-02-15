@@ -79,3 +79,19 @@ class MongoDBHandler(DBHandlerInterface):
         coll.update_one(filter_, data, upsert=upsert)
 
         return True
+
+    def rename_collection(self, collection_new_name: str, db_name: str = None, collection_name: str = None, **kwargs) -> bool:
+        db: Database = self.db if db_name is None else self.client[db_name]
+        coll: Collection = self.coll if collection_name is None else db[collection_name]
+
+        coll.rename(collection_new_name)
+
+        return True
+
+    def drop_collection(self, db_name: str = None, collection_name: str = None, **kwargs) -> bool:
+        db: Database = self.db if db_name is None else self.client[db_name]
+        coll: Collection = self.coll if collection_name is None else db[collection_name]
+
+        coll.drop()
+
+        return True
