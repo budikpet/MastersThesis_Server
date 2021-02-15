@@ -208,7 +208,7 @@ def parse_animal_data(soup: BeautifulSoup, url: ParseResult) -> AnimalData:
     return res
 
 
-def run_web_scraper(session: requests.Session, db_handler: DBHandlerInterface, min_delay: float = 10, **kwargs):
+def run_web_scraper(session: requests.Session, db_handler: DBHandlerInterface, collection_name: str, min_delay: float = 10, **kwargs):
     """
     Run a Zoo Prague lexicon web scraper to fill the provided DB with data about animals.
 
@@ -217,6 +217,7 @@ def run_web_scraper(session: requests.Session, db_handler: DBHandlerInterface, m
         db_handler (DBHandlerInterface): A DBHandlerInterface instance of chosen database used to store data from Zoo Prague lexicon.
         min_delay (float): Minimum time in seconds to wait between downloads of pages to scrape.
     """
+    tmp_coll_name: str = f'tmp_{collection_name}'
     db_handler.update_one({'_id': 0}, {'$set': {'last_update_start': datetime.now()}}, upsert=True, collection_name='metadata')
 
     for i, url in enumerate(get_animal_urls(session)):
@@ -227,7 +228,7 @@ def run_web_scraper(session: requests.Session, db_handler: DBHandlerInterface, m
         logger.info(f'{i}. {url.geturl()}')
         try:
             animal_data = parse_animal_data(soup, url)
-            db_handler.insert_one(animal_data.__dict__)
+            db_handler.insert_one(animal_data.__dict__, collection_name=tmp_coll_name)
         except:
             logger.error(f'Error occured when parsing: {url.geturl()}')
             logger.error(traceback.format_exc())
@@ -238,7 +239,9 @@ def run_web_scraper(session: requests.Session, db_handler: DBHandlerInterface, m
         logger.info(f'\t\tElapsed time: {elapsed_time} s')
         if time_to_sleep > 0:
             time.sleep(time_to_sleep)
-
+    
+    db_handler.drop_collection(collection_name=collection_name)
+    db_handler.rename_collection(collection_name=collection_name)
     db_handler.update_one({'_id': 0}, {'$set': {'last_update_end': datetime.now()}}, upsert=True, collection_name='metadata')
 
 

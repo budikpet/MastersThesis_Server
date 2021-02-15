@@ -42,6 +42,12 @@ class JSONTestHandler(DBHandlerInterface):
         """Collects one thing and stores it in a DB."""
         return True
 
+    def rename_collection(self, collection_new_name: str, db_name: str = None, collection_name: str = None, **kwargs) -> bool:
+        return True
+
+    def drop_collection(self, db_name: str = None, collection_name: str = None, **kwargs) -> bool:
+        return True
+
 class BaseTestHandler(DBHandlerInterface):
     """Implementation of a testing DBHandler which uses local filesystem.
 
@@ -72,4 +78,10 @@ class BaseTestHandler(DBHandlerInterface):
 
     def update_one(self, filter: dict, data: dict, upsert: bool = False, db_name: str = None, collection_name: str = None, **kwargs) -> bool:
         """Collects one thing and stores it in a DB."""
+        return True
+
+    def rename_collection(self, collection_new_name: str, db_name: str = None, collection_name: str = None, **kwargs) -> bool:
+        return True
+
+    def drop_collection(self, db_name: str = None, collection_name: str = None, **kwargs) -> bool:
         return True
