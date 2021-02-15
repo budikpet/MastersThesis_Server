@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup, Tag
 from urllib.parse import urlparse, urljoin, ParseResult
 import traceback
 import logging
+from datetime import datetime
 
 # Define global vars
 _URL: ParseResult = urlparse(
@@ -216,7 +217,8 @@ def run_web_scraper(session: requests.Session, db_handler: DBHandlerInterface, m
         db_handler (DBHandlerInterface): A DBHandlerInterface instance of chosen database used to store data from Zoo Prague lexicon.
         min_delay (float): Minimum time in seconds to wait between downloads of pages to scrape.
     """
-    animals_data: list[AnimalData] = list()
+    db_handler.update_one({'_id': 0}, {'$set': {'last_update_start': datetime.now()}}, upsert=True, collection_name='metadata')
+
     for i, url in enumerate(get_animal_urls(session)):
         page = session.get(url.geturl())
         start_time: float = time.time()
@@ -225,7 +227,7 @@ def run_web_scraper(session: requests.Session, db_handler: DBHandlerInterface, m
         logger.info(f'{i}. {url.geturl()}')
         try:
             animal_data = parse_animal_data(soup, url)
-            animals_data.append(animal_data)
+            db_handler.insert_one(animal_data.__dict__)
         except:
             logger.error(f'Error occured when parsing: {url.geturl()}')
             logger.error(traceback.format_exc())
@@ -237,7 +239,7 @@ def run_web_scraper(session: requests.Session, db_handler: DBHandlerInterface, m
         if time_to_sleep > 0:
             time.sleep(time_to_sleep)
 
-    db_handler.insert_many(animals_data)
+    db_handler.update_one({'_id': 0}, {'$set': {'last_update_end': datetime.now()}}, upsert=True, collection_name='metadata')
 
 
 def main():

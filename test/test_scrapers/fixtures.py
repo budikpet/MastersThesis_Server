@@ -35,7 +35,14 @@ class JSONTestHandler(DBHandlerInterface):
 
         return True
 
-class TestHandler(DBHandlerInterface):
+    def insert_one(self, data: dict, db_name: str = None, collection_name: str = None, **kwargs) -> bool:
+        return True
+
+    def update_one(self, filter: dict, data: dict, upsert: bool = False, db_name: str = None, collection_name: str = None, **kwargs) -> bool:
+        """Collects one thing and stores it in a DB."""
+        return True
+
+class BaseTestHandler(DBHandlerInterface):
     """Implementation of a testing DBHandler which uses local filesystem.
 
     Args:
@@ -57,4 +64,12 @@ class TestHandler(DBHandlerInterface):
         """Collects Zoo Prague lexicon data and stores it in a DB."""
         self.output.extend(data) 
 
+        return True
+
+    def insert_one(self, data: dict, db_name: str = None, collection_name: str = None, **kwargs) -> bool:
+        self.output.append(data)
+        return True
+
+    def update_one(self, filter: dict, data: dict, upsert: bool = False, db_name: str = None, collection_name: str = None, **kwargs) -> bool:
+        """Collects one thing and stores it in a DB."""
         return True

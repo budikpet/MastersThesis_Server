@@ -7,7 +7,7 @@ from pytest_mock.plugin import MockerFixture
 import os
 from urllib.parse import urlparse, ParseResult
 import scrapers.zoo_scraper as zoo_scraper
-from fixtures import TestHandler
+from fixtures import BaseTestHandler
 from server_dataclasses.models import AnimalData
 from pathlib import Path
 
@@ -115,22 +115,22 @@ def test_run_web_scraper_small(betamax_session: requests.Session, mocker: Mocker
     mocker.patch('time.sleep', new=sleep_lambda)
 
     # Act
-    output: list[AnimalData] = list()
-    zoo_scraper.run_web_scraper(betamax_session, TestHandler(output), sleep_time)
+    output: list[dict] = list()
+    zoo_scraper.run_web_scraper(betamax_session, BaseTestHandler(output), sleep_time)
 
     # Assert
     assert get_animal_id_spy.call_count == len(urls)
     assert len(output) == len(urls)
 
-    tygr: AnimalData = next(filter(lambda animal: 'tygr' in animal.name.lower(), output), None)
-    assert tygr.is_currently_available
-    assert tygr.sizes == ''
-    assert tygr.reproduction == ''
-    assert tygr.about_placement_in_zoo_prague is None
-    assert tygr.location_in_zoo is None
-    assert tygr.food_detail is None
+    tygr: AnimalData = next(filter(lambda animal: 'tygr' in animal.get('name').lower(), output), None)
+    assert tygr.get('is_currently_available')
+    assert tygr.get('sizes') == ''
+    assert tygr.get('reproduction') == ''
+    assert tygr.get('about_placement_in_zoo_prague') is None
+    assert tygr.get('location_in_zoo') is None
+    assert tygr.get('food_detail') is None
 
-    alpaka: AnimalData = next(filter(lambda animal: 'alpaka' in animal.name.lower(), output), None)
-    assert not alpaka.is_currently_available
+    alpaka: AnimalData = next(filter(lambda animal: 'alpaka' in animal.get('name').lower(), output), None)
+    assert not alpaka.get('is_currently_available')
 
     pass
