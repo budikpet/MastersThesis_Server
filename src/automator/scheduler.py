@@ -8,6 +8,7 @@ import traceback
 from enum import IntEnum
 from configparser import ConfigParser
 from server_dataclasses.interfaces import DBHandlerInterface
+from datetime import datetime
 
 q = Queue(connection=conn)
 
@@ -34,12 +35,10 @@ logger.addHandler(stream_handler)
 class SchedulerStates(IntEnum):
     # Before update date
     WAIT = 0
-    # Update date achieved, schedule job in RQ and start worker dyno
-    START_UPDATE = 1
     # Worker dyno still working
-    UPDATING = 2
+    UPDATING = 1
     # Worker dyno has no more work, stop it and schedule another job date
-    STOP_WORKER = 3
+    STOP_WORKER = 2
 
 
 def add_web_scraping_job(interval_time: int):
@@ -48,6 +47,24 @@ def add_web_scraping_job(interval_time: int):
     # TODO: If no internet connection then reschedule here or in zoo_scraper
     result = q.enqueue(run_test_job)
 
+def handle_update(handler: DBHandlerInterface, **kwargs):
+    metadata: dict = next(iter(handler.find({"_id": 0})), None)
+    logger.info(f'Received metadata: {metadata}')
+    
+    next_update = metadata.get('next_update', datetime.now())
+    scheduler_state: SchedulerStates = SchedulerStates(metadata.get('scheduler_state'))
+    if(scheduler_state is None):
+        scheduler_state = SchedulerStates.WAIT
+        handler.update_one({"_id": 0}, data={'$set': {'scheduler_state': scheduler_state}})
+
+    if(scheduler_state == SchedulerStates.WAIT):
+        logger.info('WAIT')
+    elif(scheduler_state == SchedulerStates.UPDATING):
+        logger.info('UPDATING')
+    elif(scheduler_state == SchedulerStates.STOP_WORKER):
+        logger.info('STOP_WORKER')
+    else:
+        raise RuntimeError(f'Unknown scheduler state: {scheduler_state}')
 
 def main():
     """
@@ -66,23 +83,7 @@ def main():
 
     with handler_class(**cfg_dict) as handler:
         try:
-            handler: DBHandlerInterface = handler
-            metadata: dict = next(iter(handler.find({"_id": 0})), None)
-            scheduler_state: SchedulerStates = SchedulerStates(metadata.get('scheduler_state'))
-            if(scheduler_state is None):
-                scheduler_state = SchedulerStates.WAIT
-                handler.update_one({"_id": 0}, data={'$set': {'scheduler_state': scheduler_state}})
-
-            if(scheduler_state == SchedulerStates.WAIT):
-                logger.info('WAIT')
-            elif(scheduler_state == SchedulerStates.START_UPDATE):
-                logger.info('START_UPDATE')
-            elif(scheduler_state == SchedulerStates.UPDATING):
-                logger.info('UPDATING')
-            elif(scheduler_state == SchedulerStates.STOP_WORKER):
-                logger.info('STOP_WORKER')
-            else:
-                raise RuntimeError(f'Unknown scheduler state: {scheduler_state}')
+            handle_update(handler)
         except Exception as ex:
             logger.error('Unknown error occured')
             logger.error(traceback.format_exc())
