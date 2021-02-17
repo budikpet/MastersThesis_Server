@@ -30,6 +30,8 @@ class DBHandlerInterface(metaclass=abc.ABCMeta):
             callable(subclass.rename),
             hasattr(subclass, 'drop_collection'),
             callable(subclass.drop_collection),
+            hasattr(subclass, 'find'),
+            callable(subclass.find),
             hasattr(subclass, 'insert_many'),
             callable(subclass.insert_many)
         ]
@@ -106,6 +108,22 @@ class DBHandlerInterface(metaclass=abc.ABCMeta):
 
         Returns:
             bool: [description]
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def find(self, filter_: dict, projection: dict = None, db_name: str = None, collection_name: str = None, **kwargs) -> list[dict]:
+        """
+        Finds documents in a collection using the defined filter.
+
+        Args:
+            filter_ (dict): Defines what kinds of documents are to be found.
+            projection (dict, optional): Defines columns which are to be returned. Defaults to None and then all columns are returned.
+            db_name (str, optional): Name of the database where the collection is. Defaults to None.
+            collection_name (str, optional): Name of the collection which is to be used. Defaults to None.
+
+        Returns:
+            list[dict]: List of dictionaries which hold document data.
         """
         raise NotImplementedError
 

@@ -85,3 +85,7 @@ class BaseTestHandler(DBHandlerInterface):
 
     def drop_collection(self, db_name: str = None, collection_name: str = None, **kwargs) -> bool:
         return True
+
+    def find(self, filter_: dict, projection: dict = None, db_name: str = None, collection_name: str = None, **kwargs) -> list[dict]:
+        #TODO: Implement?
+        pass

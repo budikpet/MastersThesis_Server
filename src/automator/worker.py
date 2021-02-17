@@ -13,6 +13,7 @@ logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s: %(message)s')
 
+os.makedirs('log', exist_ok=True)
 file_handler = logging.FileHandler('log/errors.log')
 file_handler.setLevel(logging.ERROR)
 file_handler.setFormatter(formatter)
@@ -28,5 +29,5 @@ def main():
     with Connection(conn):
         worker = Worker(map(Queue, listen))
         logger.info("Running worker")
-        worker.work(burst=True)
+        worker.work()
         logger.info("Worker done")

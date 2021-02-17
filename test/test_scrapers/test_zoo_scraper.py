@@ -116,7 +116,7 @@ def test_run_web_scraper_small(betamax_session: requests.Session, mocker: Mocker
 
     # Act
     output: list[dict] = list()
-    zoo_scraper.run_web_scraper(betamax_session, BaseTestHandler(output), sleep_time)
+    zoo_scraper.run_web_scraper(betamax_session, db_handler=BaseTestHandler(output), min_delay=sleep_time, collection_name="tmp")
 
     # Assert
     assert get_animal_id_spy.call_count == len(urls)

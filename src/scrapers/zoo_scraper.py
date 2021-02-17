@@ -3,6 +3,7 @@ from server_dataclasses.models import AnimalData
 import requests
 import time
 import re
+import os
 from configparser import ConfigParser
 from bs4 import BeautifulSoup, Tag
 from urllib.parse import urlparse, urljoin, ParseResult
@@ -22,6 +23,7 @@ logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s: %(message)s')
 
+os.makedirs('log', exist_ok=True)
 file_handler = logging.FileHandler('log/errors.log')
 file_handler.setLevel(logging.ERROR)
 file_handler.setFormatter(formatter)
