@@ -1,5 +1,6 @@
 import os
 import redis
+import logging
 from rq import Worker, Queue, Connection
 
 listen = ['high', 'default', 'low']
