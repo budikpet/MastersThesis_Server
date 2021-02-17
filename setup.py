@@ -5,7 +5,7 @@ with open('README.md') as f:
 
 deps_required = [
 	'fastapi>=0.63.0', 'requests>=2.25.1', 'beautifulsoup4>=4.9.3', 
-	'apscheduler>=3.7.0', 'levenshtein>==0.12.0', 'rq>=1.7.0',
+	'levenshtein>==0.12.0', 'rq>=1.7.0',
     'pymongo[srv]>=3.11.3', 'croniter>=1.0.6'
 ]
 

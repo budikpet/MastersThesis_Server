@@ -1,4 +1,3 @@
-from apscheduler.schedulers.blocking import BlockingScheduler
 from datetime import datetime
 from rq import Queue
 from .worker import conn
@@ -33,15 +32,9 @@ def add_web_scraping_job(interval_time: int):
 
 
 def main():
-    sched = BlockingScheduler()
+    """
+    Starts the script which is primarily to be used by Heroku scheduler to
+    """
+    logging.info('Scheduler script started.')
 
-    # misfire_grace_time=None should make it certain that the job isn't discarted if scheduled execution is missed
-    # sched.add_job(add_web_scraping_job, args=[
-    #               'day at 22:00'], trigger='cron', minute=0, hour=2, misfire_grace_time=None)
-    # sched.add_job(add_web_scraping_job, args=['last day of the month at 22:00'],
-    #               trigger='cron', day='last', minute=0, hour=2, misfire_grace_time=None)
-    # sched.add_job(add_web_scraping_job, args=['45 minutes'], trigger='interval', minutes=45)
-    sched.add_job(add_web_scraping_job, args = ['20 minutes'], trigger='interval', minutes=20)
-
-    logger.info("Jobs scheduled.")
-    sched.start()
+    logger.info('Scheduler script ended.')
