@@ -1,5 +1,5 @@
 from server_dataclasses.interfaces import DBHandlerInterface
-from server_dataclasses.models import AnimalData
+from server_dataclasses.models import AnimalData, SchedulerStates
 import requests
 import time
 import re
@@ -275,6 +275,9 @@ def main():
         except Exception as ex:
             logger.error('Unknown error occured')
             logger.error(traceback.format_exc())
+        finally:
+            # Work is done either successfully or unsuccessfully. Update scheduler_state
+            handler_instance.update_one({"_id": 0}, {"$set": {"scheduler_state": SchedulerStates.WORK_DONE}}, collection_name='metadata')
 
 
 def run_test_job():
