@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from enum import IntEnum
 
 
 @dataclass
@@ -52,3 +53,16 @@ class AnimalData():
 
     # IDs of locations of the animal's pens in map data
     map_locations: list[str] = field(default_factory=list)
+
+class SchedulerStates(IntEnum):
+    # Waiting for update date. If update date is reached then add scraping job and start worker dyno
+    WAIT = 0
+    # Worker dyno had been started and still has work. 
+    UPDATING = 1
+    # No work remains for the worker dyno. Stop it and schedule a new update date
+    WORK_DONE = 2
+
+
+class DynoStates(IntEnum):
+    DOWN = 0
+    UP = 1
