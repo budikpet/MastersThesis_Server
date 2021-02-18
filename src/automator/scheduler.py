@@ -1,7 +1,7 @@
 from datetime import datetime
 from rq import Queue
 from .worker import conn
-from scrapers.zoo_scraper import run_test_job
+import scrapers.zoo_scraper as zoo_scraper
 import logging
 import os
 import traceback
@@ -60,7 +60,7 @@ def handle_update(handler: DBHandlerInterface, **kwargs):
             q = Queue(connection=conn)
 
             # Enqueue the job, start worker dyno, update scheduler_state in DB
-            q.enqueue(run_test_job)
+            q.enqueue(zoo_scraper.main)
             __change_worker_dyno_state__(DynoStates.UP, kwargs)
             handler.update_one({"_id": 0}, {"$set": {"scheduler_state": SchedulerStates.UPDATING}})
         else:
