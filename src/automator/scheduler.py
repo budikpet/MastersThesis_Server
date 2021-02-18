@@ -43,7 +43,7 @@ def __change_worker_dyno_state__(state: DynoStates, heroku_api_key: str, **kwarg
     app: App = heroku_conn.app('masters-thesis-server')
     app.scale_formation_process('worker', state)
 
-def handle_update(handler: DBHandlerInterface, **kwargs):
+def handle_update(handler: DBHandlerInterface, heroku_api_key: str, **kwargs):
     metadata: dict = next(iter(handler.find({"_id": 0})), None)
     logger.info(f'Received metadata: {metadata}')
     
@@ -61,7 +61,7 @@ def handle_update(handler: DBHandlerInterface, **kwargs):
 
             # Enqueue the job, start worker dyno, update scheduler_state in DB
             q.enqueue(zoo_scraper.main)
-            __change_worker_dyno_state__(DynoStates.UP, kwargs)
+            __change_worker_dyno_state__(DynoStates.UP, heroku_api_key)
             handler.update_one({"_id": 0}, {"$set": {"scheduler_state": SchedulerStates.UPDATING}})
         else:
             logger.info('WAIT')
@@ -72,7 +72,7 @@ def handle_update(handler: DBHandlerInterface, **kwargs):
         # This state should be set only by zoo_scraper
         logger.info('WORK DONE -> WAIT')
         # TODO: Properly schedule next_update
-        __change_worker_dyno_state__(DynoStates.DOWN, kwargs)
+        __change_worker_dyno_state__(DynoStates.DOWN, heroku_api_key)
         handler.update_one({"_id": 0}, {"$set": {"next_update": datetime.now(), "scheduler_state": SchedulerStates.WAIT}})
     else:
         raise RuntimeError(f'Unknown scheduler state: {scheduler_state}')
@@ -96,9 +96,9 @@ def main():
     if not heroku_api_key:
         raise Exception(f'Environmental variable HEROKU_API_KEY not specified.')
 
-    with handler_class(heroku_api_key=heroku_api_key, **cfg_dict) as handler:
+    with handler_class(**cfg_dict) as handler:
         try:
-            handle_update(handler)
+            handle_update(handler, heroku_api_key=heroku_api_key)
         except Exception as ex:
             logger.error('Unknown error occured')
             logger.error(traceback.format_exc())
