@@ -57,7 +57,7 @@ def handle_update(handler: DBHandlerInterface, heroku_api_key: str, **kwargs):
         if(next_update <= datetime.now()):
             # It is time to update the database
             logger.info('WAIT -> UPDATING')
-            q = Queue(connection=conn)
+            q = Queue(connection=conn, default_timeout=18000)
 
             # Enqueue the job, start worker dyno, update scheduler_state in DB
             q.enqueue(zoo_scraper.main)
