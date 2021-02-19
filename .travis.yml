@@ -4,7 +4,6 @@ python:
 dist: xenial
 install:
 - python setup.py install
-# - python -m pip install .[dev]
 script:
 # - make -C docs doctest
 - python setup.py test
