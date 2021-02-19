@@ -75,7 +75,10 @@ def get_animal_id(query_param: str) -> int:
     # TODO: If ID is missing then write to a log
     g = (tuple(d.split('=')) for d in query_param.split('&'))
     query_dict: dict = {v[0]: v[1] for v in g}
-    return int(query_dict["start"])
+    _id = query_dict.get("start", None)
+    if _id is None:
+        raise RuntimeError(f'Value of _id not found in query params: [{query_param}]')
+    return int(_id)
 
 
 def parse_unlinked_paragraphs(data: Tag) -> dict[str, str]:
@@ -259,6 +262,7 @@ def main():
     cfg.read('config/config.cfg')
     cfg_dict: dict = cfg._sections['base'] | cfg._sections['scrapers']
     cfg_dict["min_delay"] = float(cfg_dict["min_delay"])
+    cfg_dict['collection_name'] = 'zoo_data'
 
     if cfg_dict.get('used_db') is None:
         raise Exception(f'No DBHandler specified in config file.')
