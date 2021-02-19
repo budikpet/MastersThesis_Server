@@ -1,0 +1,19 @@
+language: python
+python:
+- '3.9'
+dist: xenial
+install:
+- python setup.py install
+script:
+- python setup.py test
+env:
+  global:
+  - MIN_SCRAPING_DELAY=11
+deploy:
+  provider: heroku
+  app: masters-thesis-server
+  api_key:
+    secure: TfSM4HUbo5nRHhjHWp2o6MANZUwpSsoc0ddeOKEnBxPRUKSvkqrVj/ysfWR2fxq/e8gZv6YA2pOVRw9rC2iDsHepHG3X7i1Gz7Ok6WiN2CVHWeVlOlaRA2Chf0eLPl9FSJbYwK6k+tHQs/1Iqm9na7GTz5DgW4gHIuqi30YmdpsOQ/oup4eusq/VnYUGsTxlnyt7mhleqiETB2IGvt6ZmjyNeHDPMZ84TtS5ovwZiZXgTPTMY0S4ufF1kZUTodnlYdnQbz4cNNuL9kDsXQjIZuDfvGfS3ruC0zQbRM9X1qUdoTwdlGIJf4eXcXwXW2VAUFKAYgaJXUA8nWEP8YfeFd2SaejM+oh1ycMfHt28Ng//IkGXj9Ozz0kgT+8rtxlnqztJzAvGq0z8hz+aUeX6hU+A0scvrrVZfyCB7mWY8lQZuWXaNW+JELl59LpgCWjdiO4p4j2/VBBOQ7NY37J5Ex2Nr7qxLoJ8wwrXwOeYWwwZLVweAENS7Qm/wMDw8Rv/ng5xVUUw2WQkBdu+O/6dFV2tsTh7E5O1Cypa3fBcYGimidtgGM0HtAG30jLCArVVkLFHRV4DAGrKl9VWtMKQKJXcJ81WFd5Dyp3mya+JlPwJD6VTa8tOuYgKCK/tKZ05fpHnXPXdc45dBa9/FoZFJVDaduus7YWhqYz+MC/saZo=
+  on:
+    # CI is already triggered on all branches, this triggers CD on all branches if CI was OK
+    all_branches: true
