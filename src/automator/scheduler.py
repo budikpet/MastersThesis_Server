@@ -33,12 +33,6 @@ logger.addHandler(file_handler)
 logger.addHandler(stream_handler)
 
 
-def add_web_scraping_job(interval_time: int):
-    logger.info(
-        f'JOB EXECUTED: This job is run every {interval_time}. Current time is: {datetime.now()}')
-    # TODO: If no internet connection then reschedule here or in zoo_scraper
-    result = q.enqueue(run_test_job)
-
 def __change_worker_dyno_state__(state: DynoStates, heroku_api_key: str, **kwargs):
     heroku_conn = heroku3.from_key(heroku_api_key)
     app: App = heroku_conn.app('masters-thesis-server')

@@ -72,7 +72,6 @@ def get_animal_id(query_param: str) -> int:
     Returns:
         int: [description]
     """
-    # TODO: If ID is missing then write to a log
     g = (tuple(d.split('=')) for d in query_param.split('&'))
     query_dict: dict = {v[0]: v[1] for v in g}
     _id = query_dict.get("start", None)
@@ -261,7 +260,7 @@ def main():
     cfg: ConfigParser = ConfigParser()
     cfg.read('config/config.cfg')
     cfg_dict: dict = cfg._sections['base'] | cfg._sections['scrapers']
-    cfg_dict["min_delay"] = float(cfg_dict["min_delay"])
+    cfg_dict["min_delay"] = os.getenv('MIN_SCRAPING_DELAY', float(cfg_dict["min_delay"]))
     cfg_dict['collection_name'] = 'zoo_data'
 
     if cfg_dict.get('used_db') is None:
@@ -272,7 +271,6 @@ def main():
     if handler is None:
         raise Exception(f'DBHandler called "{cfg_dict["used_db"]}" not found.')
 
-    # TODO: Check how to do it properly. Couldn't put the with statement inside try block since it didn't register some exceptions then
     with requests.Session() as session, handler(**cfg_dict) as handler_instance:
         try:
             run_web_scraper(session, db_handler=handler_instance, **cfg_dict)
