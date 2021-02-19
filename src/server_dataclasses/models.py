@@ -7,7 +7,7 @@ class AnimalData():
     """Holds data about animal parsed from Zoo Prague lexicon."""
 
     ### Parsed data
-    id: int = -1
+    _id: int = -1
     name: str = None
     latin_name: str = None
 

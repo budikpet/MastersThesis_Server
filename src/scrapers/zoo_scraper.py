@@ -164,7 +164,7 @@ def parse_animal_data(soup: BeautifulSoup, url: ParseResult) -> AnimalData:
     para1, para2 = data.find_all('div', class_='para')
 
     # Parse id
-    res.id = get_animal_id(url.query)
+    res._id = get_animal_id(url.query)
 
     # Parse czech & latin name
     names: str = mainboxtitle.find("h2").text
