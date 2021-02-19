@@ -11,6 +11,7 @@ from server_dataclasses.models import SchedulerStates, DynoStates
 from datetime import datetime
 import heroku3
 from heroku3.models.app import App
+from croniter import croniter
 
 # Define logger
 logger = logging.getLogger(__name__)
@@ -43,7 +44,7 @@ def __change_worker_dyno_state__(state: DynoStates, heroku_api_key: str, **kwarg
     app: App = heroku_conn.app('masters-thesis-server')
     app.scale_formation_process('worker', state)
 
-def handle_update(handler: DBHandlerInterface, heroku_api_key: str, **kwargs):
+def handle_update(handler: DBHandlerInterface, heroku_api_key: str, config: dict, **kwargs):
     metadata: dict = next(iter(handler.find({"_id": 0})), None)
     logger.info(f'Received metadata: {metadata}')
     
@@ -71,9 +72,12 @@ def handle_update(handler: DBHandlerInterface, heroku_api_key: str, **kwargs):
     elif(scheduler_state == SchedulerStates.WORK_DONE):
         # This state should be set only by zoo_scraper
         logger.info('WORK DONE -> WAIT')
-        # TODO: Properly schedule next_update
         __change_worker_dyno_state__(DynoStates.DOWN, heroku_api_key)
-        handler.update_one({"_id": 0}, {"$set": {"next_update": datetime.now(), "scheduler_state": SchedulerStates.WAIT}})
+
+        # Schedule next update
+        crontab_schedule: str = os.getenv('CRONTAB_SCHEDULE', config['default_crontab_schedule'])
+        crontab: croniter = croniter(crontab_schedule, datetime.now())
+        handler.update_one({"_id": 0}, {"$set": {"next_update": crontab.get_next(datetime), "scheduler_state": SchedulerStates.WAIT}})
     else:
         raise RuntimeError(f'Unknown scheduler state: {scheduler_state}')
 
@@ -85,7 +89,7 @@ def main():
 
     cfg: ConfigParser = ConfigParser()
     cfg.read('config/config.cfg')
-    cfg_dict: dict = cfg._sections['base'] | cfg._sections['scrapers']
+    cfg_dict: dict = cfg._sections['base'] | cfg._sections['scrapers'] | cfg._sections['automator']
     cfg_dict['collection_name'] = 'metadata'
 
     handler_class: DBHandlerInterface = next((handler for handler in DBHandlerInterface.__subclasses__() if handler.name == cfg_dict['used_db']), None)
@@ -98,7 +102,7 @@ def main():
 
     with handler_class(**cfg_dict) as handler:
         try:
-            handle_update(handler, heroku_api_key=heroku_api_key)
+            handle_update(handler, config=cfg_dict, heroku_api_key=heroku_api_key)
         except Exception as ex:
             logger.error('Unknown error occured')
             logger.error(traceback.format_exc())
