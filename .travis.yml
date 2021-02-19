@@ -6,7 +6,6 @@ install:
 - python setup.py install
 script:
 - python setup.py test
-- echo $HEROKU_API_KEY
 env:
   global:
   - MIN_SCRAPING_DELAY=11
