@@ -261,7 +261,7 @@ def main():
     cfg: ConfigParser = ConfigParser()
     cfg.read('config/config.cfg')
     cfg_dict: dict = cfg._sections['base'] | cfg._sections['scrapers']
-    cfg_dict["min_delay"] = os.getenv('MIN_SCRAPING_DELAY', float(cfg_dict["min_delay"]))
+    cfg_dict["min_delay"] = float(os.getenv('MIN_SCRAPING_DELAY', cfg_dict["min_delay"]))
     cfg_dict['collection_name'] = 'zoo_data'
 
     if cfg_dict.get('used_db') is None:
@@ -280,6 +280,7 @@ def main():
             logger.error(traceback.format_exc())
         finally:
             # Work is done either successfully or unsuccessfully. Update scheduler_state
+            logger.info('Setting scheduler_state to WORK_DONE.')
             handler_instance.update_one({"_id": 0}, {"$set": {"scheduler_state": SchedulerStates.WORK_DONE}}, collection_name='metadata')
 
 
