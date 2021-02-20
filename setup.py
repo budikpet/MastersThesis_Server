@@ -6,7 +6,8 @@ with open('README.md') as f:
 deps_required = [
 	'fastapi>=0.63.0', 'requests>=2.25.1', 'beautifulsoup4>=4.9.3', 
 	'levenshtein>==0.12.0', 'rq>=1.7.0', 'heroku3>=4.2.3',
-    'pymongo[srv]>=3.11.3', 'croniter>=1.0.6'
+    'pymongo[srv]>=3.11.3', 'croniter>=1.0.6',
+    'tilepack @ git+https://github.com/tilezen/tilepacks@v1.0.0#egg=tilepack'
 ]
 
 deps_tests = [
@@ -27,7 +28,7 @@ setup(
     extras_require={
         'dev':  (['sphinx>=3.4.3', 'notebook>=6.2.0'] + deps_tests)
     },
-    python_requires='>=3.7',
+    python_requires='>=3.9',
     author='Petr Budík',
     author_email='budikpet@fit.cvut.cz',
     license='Public Domain',
