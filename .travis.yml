@@ -3,7 +3,7 @@ python:
 - '3.9'
 dist: xenial
 install:
-- python setup.py install
+- pip install .
 script:
 - python setup.py test
 env:
