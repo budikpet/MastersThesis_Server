@@ -1,6 +1,8 @@
 .vscode
 .DS_Store
 log/*
+jupyter_notebooks/secrets.py
+jupyter_notebooks/zoo_prague_map
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
