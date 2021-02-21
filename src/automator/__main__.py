@@ -12,4 +12,4 @@ if len(argv) == 2:
     elif command == 'worker':
         worker.main()
 else:
-    print("Usage: python -m automator scheduler|worker")
+    print("Usage: python -m automator [scheduler|worker]")

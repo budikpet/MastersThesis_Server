@@ -46,7 +46,7 @@ class DBHandlerInterface(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def insert_many(self, data: list, db_name: str = None, collection_name: str = None, **kwargs) -> bool:
+    def insert_many(self, data: list[dict], db_name: str = None, collection_name: str = None, **kwargs) -> bool:
         """Collects a list and stores it in a DB"""
         raise NotImplementedError
 

@@ -3,6 +3,7 @@
 log/*
 jupyter_notebooks/secrets.py
 jupyter_notebooks/zoo_prague_map
+tmp
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

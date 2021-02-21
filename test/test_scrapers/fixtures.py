@@ -26,7 +26,7 @@ class JSONTestHandler(DBHandlerInterface):
     def __exit__(self, exc_type, exc_value, traceback):
         return True
 
-    def insert_many(self, data: list, **kwargs) -> bool:
+    def insert_many(self, data: list[dict], **kwargs) -> bool:
         """Collects Zoo Prague lexicon data and stores it in a DB."""
         for animal in data:
             name = animal.name.replace(' ', '_').lower()
@@ -66,7 +66,7 @@ class BaseTestHandler(DBHandlerInterface):
     def __exit__(self, exc_type, exc_value, traceback):
         return True
 
-    def insert_many(self, data: list, **kwargs) -> bool:
+    def insert_many(self, data: list[dict], **kwargs) -> bool:
         """Collects Zoo Prague lexicon data and stores it in a DB."""
         self.output.extend(data) 
 

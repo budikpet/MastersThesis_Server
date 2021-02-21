@@ -30,13 +30,12 @@ class MongoDBHandler(DBHandlerInterface):
         # suppress errors
         return True
 
-    def insert_many(self, data: list, db_name: str = None, collection_name: str = None, **kwargs) -> bool:
+    def insert_many(self, data: list[dict], db_name: str = None, collection_name: str = None, **kwargs) -> bool:
         """Collects Zoo Prague lexicon data and stores it in a DB."""
         db: Database = self.db if db_name is None else self.client[db_name]
         coll: Collection = self.coll if collection_name is None else db[collection_name]
         
-        dicts = [animal.__dict__ for animal in data]
-        coll.insert_many(dicts)
+        coll.insert_many(data)
 
         return True
 
