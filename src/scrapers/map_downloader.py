@@ -70,7 +70,7 @@ def download_map_data(args: dict) -> Path:
 
     return folder_path
 
-def parse_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[dict[int, str]]:
+def get_animal_pens_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[dict[int, str]]:
     """
     Parses GeoJSON data for data that needs to be integrated with Zoo Prague data.
 
@@ -91,8 +91,6 @@ def parse_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[dict[i
                     res[poi['id']] = poi['name']
 
     res = [{"_id": k, "name": v} for k,v in res.items()]
-    db_handler.drop_collection()
-    db_handler.insert_many(res)
     return res
 
 def __get_csv_data__() -> list[dict[str, list]]:
@@ -174,7 +172,7 @@ def update_singular_plural_table(session: requests.Session, db_handler: DBHandle
     
     for pen in pens:
         # Some pens can have multiple animals
-        res: list = list()
+        pen_animal_names: list = list()
         names = pen['name'].strip().split(',')
         for name in names:
             # Some names can have noun and pronoun
@@ -184,7 +182,7 @@ def update_singular_plural_table(session: requests.Session, db_handler: DBHandle
                 singulars = get_singular(words[0], session, singular_plural_data, collection_name=collection_name, min_delay=min_delay)
                 if(singulars is not None):
                     db_handler.update_one({"_id": words[0]}, {"$set": {"singulars": singulars}}, upsert=True, collection_name=collection_name)
-                    res.append(singulars[0])
+                    pen_animal_names.append(singulars[0])
             elif(len(words) == 2):
                 # Has noun and pronoun
                 singular_noun = get_singular(words[0], session, singular_plural_data, collection_name=collection_name, min_delay=min_delay)
@@ -193,9 +191,11 @@ def update_singular_plural_table(session: requests.Session, db_handler: DBHandle
                     db_handler.update_one({"_id": words[0]}, {"$set": {"singulars": singular_noun}}, upsert=True, collection_name=collection_name)
                     db_handler.update_one({"_id": words[1]}, {"$set": {"singulars": singular_pronouns}}, upsert=True, collection_name=collection_name)
                     for pair in itertools.product(singular_noun, singular_pronouns):
-                        res.append(' '.join(pair))
+                        pen_animal_names.append(' '.join(pair))
 
-        res
+        pen["singular_names"] = pen_animal_names
+    db_handler.drop_collection()
+    db_handler.insert_many(pens)
 
 def main():
     """
@@ -207,7 +207,7 @@ def main():
     cfg.read('config/config.cfg')
     cfg_dict: dict = cfg._sections['mbtiles_downloader'] | cfg._sections['base'] | cfg._sections['scrapers']
     cfg_dict["min_delay"] = float(os.getenv('MIN_SCRAPING_DELAY', cfg_dict["min_delay"]))
-    cfg_dict['collection_name'] = 'map_data'
+    cfg_dict['collection_name'] = 'animal_pens'
 
     mapzen_url_prefix = os.getenv('MAPZEN_URL_PREFIX', 'https://tile.nextzen.org/tilezen')
     mapzen_api_key = os.getenv('MAPZEN_API_KEY', None)
@@ -242,7 +242,7 @@ def main():
             # TODO: Uncomment
             # folder_path: Path = download_map_data(args)
             folder_path: Path = Path(f'tmp/{args["output"]}')
-            pens = parse_data(folder_path, handler_instance)
+            pens = get_animal_pens_data(folder_path, handler_instance)
 
             # Animal pens are plural, need singular versions for joining with Zoo Prague lexicon data.
             update_singular_plural_table(session, handler_instance, pens, cfg_dict["min_delay"])
