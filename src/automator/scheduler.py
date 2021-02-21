@@ -2,6 +2,7 @@ from datetime import datetime
 from rq import Queue
 from .worker import conn
 import scrapers.zoo_scraper as zoo_scraper
+import scrapers.map_downloader as map_downloader
 import logging
 import os
 import traceback
@@ -55,6 +56,7 @@ def handle_update(handler: DBHandlerInterface, heroku_api_key: str, config: dict
             q = Queue(connection=conn, default_timeout=18000)
 
             # Enqueue the job, start worker dyno, update scheduler_state in DB
+            q.enqueue(map_downloader.main)
             q.enqueue(zoo_scraper.main)
             __change_worker_dyno_state__(DynoStates.UP, heroku_api_key)
             handler.update_one({"_id": 0}, {"$set": {"scheduler_state": SchedulerStates.UPDATING}})

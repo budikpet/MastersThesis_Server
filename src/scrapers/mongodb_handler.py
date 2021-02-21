@@ -45,8 +45,8 @@ class MongoDBHandler(DBHandlerInterface):
 
         Args:
             data (dict): Data to store
-            db_name (str, optional): Name of the database where the collection is. Defaults to None.
-            collection_name (str, optional): Name of the collection where to put data to. Defaults to None.
+            db_name (str, optional): Name of the database where the collection is. Defaults to the property selected during initialization.
+            collection_name (str, optional): Name of the collection where to put data to. Defaults to the property selected during initialization.
 
         Returns:
             bool: [description]
@@ -66,8 +66,8 @@ class MongoDBHandler(DBHandlerInterface):
             filter_ (dict): Determines how to find the document to update.
             data (dict): Determines how the document is updated.
             upsert (bool, optional): If set to True and no document is found then a new document is created. Defaults to False.
-            db_name (str, optional): Name of the database where the collection is. Defaults to None.
-            collection_name (str, optional): Name of the collection where to put data to. Defaults to None.
+            db_name (str, optional): Name of the database where the collection is. Defaults to the property selected during initialization.
+            collection_name (str, optional): Name of the collection where to put data to. Defaults to the property selected during initialization.
 
         Returns:
             bool: [description]
@@ -85,8 +85,8 @@ class MongoDBHandler(DBHandlerInterface):
 
         Args:
             collection_new_name (str): New name of the collection
-            db_name (str, optional): Name of the database where the collection is. Defaults to None.
-            collection_name (str, optional): Name of the collection which is to be used. Defaults to None.
+            db_name (str, optional): Name of the database where the collection is. Defaults to the property selected during initialization.
+            collection_name (str, optional): Name of the collection which is to be used. Defaults to the property selected during initialization.
 
         Returns:
             bool: [description]
@@ -103,8 +103,8 @@ class MongoDBHandler(DBHandlerInterface):
         Drop collection if it exists.
 
         Args:
-            db_name (str, optional): Name of the database where the collection is. Defaults to None.
-            collection_name (str, optional): Name of the collection which is to be used. Defaults to None.
+            db_name (str, optional): Name of the database where the collection is. Defaults to the property selected during initialization.
+            collection_name (str, optional): Name of the collection which is to be used. Defaults to the property selected during initialization.
 
         Returns:
             bool: [description]
@@ -122,9 +122,9 @@ class MongoDBHandler(DBHandlerInterface):
 
         Args:
             filter_ (dict): Defines what kinds of documents are to be found.
-            projection (dict, optional): Defines columns which are to be returned. Defaults to None and then all columns are returned.
-            db_name (str, optional): Name of the database where the collection is. Defaults to None.
-            collection_name (str, optional): Name of the collection which is to be used. Defaults to None.
+            projection (dict, optional): Defines columns which are to be returned. Defaults to the property selected during initialization. and then all columns are returned.
+            db_name (str, optional): Name of the database where the collection is. Defaults to the property selected during initialization.
+            collection_name (str, optional): Name of the collection which is to be used. Defaults to the property selected during initialization.
 
         Returns:
             list[dict]: List of dictionaries which hold document data.
@@ -133,3 +133,19 @@ class MongoDBHandler(DBHandlerInterface):
         coll: Collection = self.coll if collection_name is None else db[collection_name]
 
         return list(coll.find(filter_, projection=projection))
+
+    def collection_exists(self, db_name: str = None, collection_name: str = None, **kwargs) -> bool:
+        """
+        Check if the given collection exists.
+
+        Args:
+            db_name (str, optional): Name of the database where the collection is. Defaults to the property selected during initialization.
+            collection_name (str, optional): Name of the collection which is to be used. Defaults to the property selected during initialization.
+
+        Returns:
+            bool: True if the collection exists.
+        """
+        db: Database = self.db if db_name is None else self.client[db_name]
+        coll: Collection = self.coll if collection_name is None else db[collection_name]
+
+        return coll.name in db.list_collection_names()

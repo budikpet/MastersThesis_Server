@@ -32,6 +32,8 @@ class DBHandlerInterface(metaclass=abc.ABCMeta):
             callable(subclass.drop_collection),
             hasattr(subclass, 'find'),
             callable(subclass.find),
+            hasattr(subclass, 'collection_exists'),
+            callable(subclass.collection_exists),
             hasattr(subclass, 'insert_many'),
             callable(subclass.insert_many)
         ]
@@ -124,6 +126,20 @@ class DBHandlerInterface(metaclass=abc.ABCMeta):
 
         Returns:
             list[dict]: List of dictionaries which hold document data.
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def collection_exists(self, db_name: str = None, collection_name: str = None, **kwargs) -> bool:
+        """
+        Check if the given collection exists.
+
+        Args:
+            db_name (str, optional): Name of the database where the collection is. Defaults to the property selected during initialization.
+            collection_name (str, optional): Name of the collection which is to be used. Defaults to the property selected during initialization.
+
+        Returns:
+            bool: True if the collection exists.
         """
         raise NotImplementedError
 

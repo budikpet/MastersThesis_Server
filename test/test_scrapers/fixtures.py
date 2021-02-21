@@ -48,6 +48,9 @@ class JSONTestHandler(DBHandlerInterface):
     def drop_collection(self, db_name: str = None, collection_name: str = None, **kwargs) -> bool:
         return True
 
+    def collection_exists(self, db_name: str = None, collection_name: str = None, **kwargs) -> bool:
+        pass
+
 class BaseTestHandler(DBHandlerInterface):
     """Implementation of a testing DBHandler which uses local filesystem.
 
@@ -88,4 +91,7 @@ class BaseTestHandler(DBHandlerInterface):
 
     def find(self, filter_: dict, projection: dict = None, db_name: str = None, collection_name: str = None, **kwargs) -> list[dict]:
         #TODO: Implement?
+        pass
+
+    def collection_exists(self, db_name: str = None, collection_name: str = None, **kwargs) -> bool:
         pass
