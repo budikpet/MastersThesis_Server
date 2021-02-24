@@ -147,14 +147,25 @@ def __add_parsed_table_data__(res: AnimalData, attrs: list[str], parsed_value: s
     else:
         setattr(res, attrs[0], parsed_value.strip())
 
+def __add_map_locations__(res: AnimalData, animal_pens: list[dict]):
+    # Add map locations for animals located in pavilons
 
-def parse_animal_data(soup: BeautifulSoup, url: ParseResult) -> AnimalData:
+    # Add map locations for animals located in pens
+    res.map_locations = [pen["_id"] for pen in animal_pens if res.name.lower() in pen['singular_names']]
+    if(len(res.map_locations) == 0):
+        # Pen for full name not found. There may be an animal pen only for the first name
+        first_name: str = res.name.lower().split(' ')[0].strip()
+        res.map_locations = [pen["_id"] for pen in animal_pens if first_name in pen['singular_names']]
+
+
+def parse_animal_data(soup: BeautifulSoup, url: ParseResult, animal_pens: list[dict]) -> AnimalData:
     """
     Parses all data from the given page into the AnimalData object.
 
     Args:
         soup (BeautifulSoup): Page to parse.
         url (ParseResult): URL of the page to parse.
+        animal_pens (list[dict]): List of animal pens available in Zoo Prague map data directly from DB.
 
     Returns:
         AnimalData: Object with data that was parsed from the page.
@@ -209,6 +220,9 @@ def parse_animal_data(soup: BeautifulSoup, url: ParseResult) -> AnimalData:
         # Some animals have indication that they aren't located in Zoo Prague
         res.is_currently_available = False
 
+    # Add map locations
+    __add_map_locations__(res, animal_pens)
+
     return res
 
 
@@ -221,6 +235,7 @@ def run_web_scraper(session: requests.Session, db_handler: DBHandlerInterface, c
         db_handler (DBHandlerInterface): A DBHandlerInterface instance of chosen database used to store data from Zoo Prague lexicon.
         min_delay (float): Minimum time in seconds to wait between downloads of pages to scrape.
     """
+    animal_pens: list[dict] = db_handler.find(filter_={}, collection_name='animal_pens')
     tmp_coll_name: str = f'tmp_{collection_name}'
     db_handler.update_one({'_id': 0}, {'$set': {'last_update_start': datetime.now()}}, upsert=True, collection_name='metadata')
     db_handler.drop_collection(collection_name=tmp_coll_name)
@@ -232,7 +247,7 @@ def run_web_scraper(session: requests.Session, db_handler: DBHandlerInterface, c
 
         logger.info(f'{i}. {url.geturl()}')
         try:
-            animal_data = parse_animal_data(soup, url)
+            animal_data = parse_animal_data(soup, url, animal_pens)
             db_handler.insert_one(animal_data.__dict__, collection_name=tmp_coll_name)
         except:
             logger.error(f'Error occured when parsing: {url.geturl()}')

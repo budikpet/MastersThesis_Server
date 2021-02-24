@@ -60,8 +60,16 @@ class BaseTestHandler(DBHandlerInterface):
 
     name: str = 'mongodb'
 
-    def __init__(self, output: list[AnimalData]):
+    def __init__(self, output: list[AnimalData], find_output: dict[list[dict]] = None):
+        """
+        Initialize BaseTestHandler
+
+        Args:
+            output (list[AnimalData]): This collection is used by insert_many, insert_one, update_one to store data.
+            find_output (dict[list[dict]], optional): This dictionary is used by find method. Key is the collection name, value is a list of results. Defaults to None.
+        """
         self.output = output
+        self.find_output = find_output
 
     def __enter__(self):
         return self
@@ -90,8 +98,10 @@ class BaseTestHandler(DBHandlerInterface):
         return True
 
     def find(self, filter_: dict, projection: dict = None, db_name: str = None, collection_name: str = None, **kwargs) -> list[dict]:
-        #TODO: Implement?
-        pass
+        if(self.find_output is None):
+            return []
+        
+        return self.find_output.get(collection_name, [])
 
     def collection_exists(self, db_name: str = None, collection_name: str = None, **kwargs) -> bool:
-        pass
+        return True

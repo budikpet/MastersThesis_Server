@@ -39,6 +39,11 @@ def __change_worker_dyno_state__(state: DynoStates, heroku_api_key: str, **kwarg
     app: App = heroku_conn.app('masters-thesis-server')
     app.scale_formation_process('worker', state)
 
+def __schedule_long_job__():
+    q = Queue(connection=conn, default_timeout=18000)
+    q.enqueue(map_downloader.main)
+    q.enqueue(zoo_scraper.main)
+
 def handle_update(handler: DBHandlerInterface, heroku_api_key: str, config: dict, **kwargs):
     metadata: dict = next(iter(handler.find({"_id": 0})), None)
     logger.info(f'Received metadata: {metadata}')
@@ -53,11 +58,8 @@ def handle_update(handler: DBHandlerInterface, heroku_api_key: str, config: dict
         if(next_update <= datetime.now()):
             # It is time to update the database
             logger.info('WAIT -> UPDATING')
-            q = Queue(connection=conn, default_timeout=18000)
-
-            # Enqueue the job, start worker dyno, update scheduler_state in DB
-            q.enqueue(map_downloader.main)
-            q.enqueue(zoo_scraper.main)
+            __schedule_long_job__()
+            # Start worker dyno and update scheduler_state in DB
             __change_worker_dyno_state__(DynoStates.UP, heroku_api_key)
             handler.update_one({"_id": 0}, {"$set": {"scheduler_state": SchedulerStates.UPDATING}})
         else:
