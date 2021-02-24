@@ -70,9 +70,11 @@ def download_map_data(args: dict) -> Path:
 
     return folder_path
 
-def get_animal_pens_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[dict[int, str]]:
+def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[dict[int, str]]:
     """
     Parses GeoJSON data for data that needs to be integrated with Zoo Prague data.
+
+    Most data is stored to MongoDB immediately, animal pens data is returned for further refinement.
 
     Args:
         folder_path (Path): Path to a parent folder of map data files we downloaded.
@@ -81,17 +83,27 @@ def get_animal_pens_data(folder_path: Path, db_handler: DBHandlerInterface) -> l
     Returns:
         list[dict[int, str]]: A list of animal pen data that was parsed from GeoJSONs.
     """
-    res: dict = dict()
+    animal_pens: dict = dict()
+    buildings: dict = dict()
     for geojson in iglob(str(folder_path / 'geojsons' / 'all' / '**/*.json'), recursive=True):
         with open(geojson) as f:
             data = json.load(f)
+
+            # Animal pens
             for poi in data['pois']['features']:
                 poi = poi['properties']
                 if(poi['kind'] == 'animal'):
-                    res[poi['id']] = poi['name']
+                    animal_pens[poi['id']] = poi['name']
+            
+            # Buildings
+            for poi in data['buildings']['features']:
+                poi = poi['properties']
+                if(poi['kind'] == 'building' and poi.get("id") is not None and poi.get("name") is not None):
+                    buildings[poi['id']] = poi['name']
 
-    res = [{"_id": k, "name": v} for k,v in res.items()]
-    return res
+    db_handler.insert_many(data=[{"_id": k, "name": v} for k,v in buildings.items()], collection_name='buildings')
+
+    return [{"_id": k, "name": v} for k,v in animal_pens.items()]
 
 def __get_csv_data__() -> list[dict[str, list]]:
     """
@@ -242,7 +254,7 @@ def main():
             # TODO: Uncomment
             # folder_path: Path = download_map_data(args)
             folder_path: Path = Path(f'tmp/{args["output"]}')
-            pens = get_animal_pens_data(folder_path, handler_instance)
+            pens = parse_map_data(folder_path, handler_instance)
 
             # Animal pens are plural, need singular versions for joining with Zoo Prague lexicon data.
             update_singular_plural_table(session, handler_instance, pens, cfg_dict["min_delay"])

@@ -72,8 +72,9 @@ def test_run_web_scraper_pavilon_animals(betamax_session: requests.Session, mock
     urls: list[str] = [
         "https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat?d=27-agama-stepni&start=27",             # Pavilon šelem a plazů
         "https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat?d=795-agama-zapadoafricka&start=795",    # Afrika zblizka
-        "https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat?d=5-amazonan-jamajsky&start=5"           # Ptačí svět
-        "https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat?d=140-chameleon-obrovsky&start=140"      # Pavilon velkých želv
+        "https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat?d=5-amazonan-jamajsky&start=5",          # Ptačí svět
+        "https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat?d=140-chameleon-obrovsky&start=140",     # Pavilon velkých želv
+        "https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat?d=702-kakadu-palmovy&start=702",         # Rákosův pavilon
     ]
     urls: list[ParseResult] = [urlparse(url) for url in urls]
     mocker.patch('scrapers.zoo_scraper.get_animal_urls', return_value=urls)
@@ -88,8 +89,12 @@ def test_run_web_scraper_pavilon_animals(betamax_session: requests.Session, mock
     # Act
     # List of animal_pens results the method needs
     find_res: dict[str, list] = {
-        'pavilons': [
-            
+        'buildings': [
+            {"_id" : 0, "name" : "Pavilon šelem a plazů"},
+            {"_id" : 1, "name" : "Afrika zblízka"},
+            {"_id" : 2, "name" : "Ptačí svět"},
+            {"_id" : 3, "name" : "Pavilon velkých želv"},
+            {"_id" : 4, "name" : "Rákosův pavilon"}
         ]
     }
 
@@ -102,6 +107,9 @@ def test_run_web_scraper_pavilon_animals(betamax_session: requests.Session, mock
     assert len(output) == len(urls)
 
     assert all([len(animal.map_locations) == 1 for animal in output])
+
+    # Each animal has a map_location which is the same as its index in the output
+    assert all([animal.map_locations[0] == index for index, animal in enumerate(output)])
 
 def test_run_web_scraper_basic(betamax_session: requests.Session, mocker: MockerFixture):
     """
