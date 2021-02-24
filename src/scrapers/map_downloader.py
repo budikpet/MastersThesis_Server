@@ -89,11 +89,15 @@ def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[di
         with open(geojson) as f:
             data = json.load(f)
 
-            # Animal pens
+            # Animal pens and some zoo buildings and parts
             for poi in data['pois']['features']:
                 poi = poi['properties']
+                if(not poi.get('id')):
+                    continue
                 if(poi['kind'] == 'animal'):
                     animal_pens[poi['id']] = poi['name']
+                elif(poi['kind'] == 'zoo_part'):
+                    buildings[poi['id']] = poi['name']
             
             # Buildings
             for poi in data['buildings']['features']:
@@ -101,7 +105,8 @@ def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[di
                 if(poi['kind'] == 'building' and poi.get("id") is not None and poi.get("name") is not None):
                     buildings[poi['id']] = poi['name']
 
-    db_handler.insert_many(data=[{"_id": k, "name": v} for k,v in buildings.items()], collection_name='buildings')
+    db_handler.drop_collection(collection_name='zoo_parts')
+    db_handler.insert_many(data=[{"_id": k, "name": v} for k,v in buildings.items()], collection_name='zoo_parts')
 
     return [{"_id": k, "name": v} for k,v in animal_pens.items()]
 

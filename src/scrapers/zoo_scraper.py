@@ -243,7 +243,7 @@ def run_web_scraper(session: requests.Session, db_handler: DBHandlerInterface, c
         min_delay (float): Minimum time in seconds to wait between downloads of pages to scrape.
     """
     animal_pens: list[dict] = db_handler.find(filter_={}, collection_name='animal_pens')
-    buildings: list[dict] = db_handler.find(filter_={}, collection_name='buildings')
+    buildings: list[dict] = db_handler.find(filter_={}, collection_name='zoo_parts')
     tmp_coll_name: str = f'tmp_{collection_name}'
     db_handler.update_one({'_id': 0}, {'$set': {'last_update_start': datetime.now()}}, upsert=True, collection_name='metadata')
     db_handler.drop_collection(collection_name=tmp_coll_name)

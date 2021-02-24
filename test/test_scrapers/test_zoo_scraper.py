@@ -72,7 +72,6 @@ def test_run_web_scraper_pavilon_animals(betamax_session: requests.Session, mock
     urls: list[str] = [
         "https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat?d=27-agama-stepni&start=27",             # Pavilon šelem a plazů
         "https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat?d=795-agama-zapadoafricka&start=795",    # Afrika zblizka
-        "https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat?d=5-amazonan-jamajsky&start=5",          # Ptačí svět
         "https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat?d=140-chameleon-obrovsky&start=140",     # Pavilon velkých želv
         "https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat?d=702-kakadu-palmovy&start=702",         # Rákosův pavilon
     ]
@@ -89,12 +88,11 @@ def test_run_web_scraper_pavilon_animals(betamax_session: requests.Session, mock
     # Act
     # List of animal_pens results the method needs
     find_res: dict[str, list] = {
-        'buildings': [
+        'zoo_parts': [
             {"_id" : 0, "name" : "Pavilon šelem a plazů"},
             {"_id" : 1, "name" : "Afrika zblízka"},
-            {"_id" : 2, "name" : "Ptačí svět"},
-            {"_id" : 3, "name" : "Pavilon velkých želv"},
-            {"_id" : 4, "name" : "Rákosův pavilon"}
+            {"_id" : 2, "name" : "Pavilon velkých želv"},
+            {"_id" : 3, "name" : "Rákosův pavilon"}
         ]
     }
 
