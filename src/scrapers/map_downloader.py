@@ -214,6 +214,27 @@ def update_singular_plural_table(session: requests.Session, db_handler: DBHandle
     db_handler.drop_collection()
     db_handler.insert_many(pens)
 
+def __do_manual_changes__(db_handler: DBHandlerInterface):
+    """
+    Updates data in the given DB using provided CSV files.
+
+    Args:
+        db_handler (DBHandlerInterface): [description]
+    """
+    p = 'config/zoo_parts.csv'
+    data: list = list()
+    if(os.path.isfile(p)):
+        with open(p) as f:
+            next(f) # skip first line
+            csv_reader = csv.reader(f, delimiter=';')
+            for _id, name in csv_reader:
+                data = {
+                    "$set": {
+                        "name": name
+                    }
+                }
+                db_handler.update_one(filter_={"_id": int(_id)}, data=data, upsert=True, collection_name='zoo_parts')
+
 def main():
     """
     Run MBTiles & GeoJSON map data downloader/parser.
@@ -262,6 +283,7 @@ def main():
 
             # Animal pens are plural, need singular versions for joining with Zoo Prague lexicon data.
             update_singular_plural_table(session, handler_instance, pens, cfg_dict["min_delay"])
+            __do_manual_changes__(handler_instance)
         except Exception as ex:
             logger.error('Unknown error occured')
             logger.error(traceback.format_exc())
