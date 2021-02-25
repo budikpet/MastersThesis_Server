@@ -256,8 +256,7 @@ def main():
 
     with requests.Session() as session, handler(**cfg_dict) as handler_instance:
         try:
-            # TODO: Uncomment
-            # folder_path: Path = download_map_data(args)
+            folder_path: Path = download_map_data(args)
             folder_path: Path = Path(f'tmp/{args["output"]}')
             pens = parse_map_data(folder_path, handler_instance)
 
