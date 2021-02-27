@@ -87,7 +87,7 @@ def main():
 
     cfg: ConfigParser = ConfigParser()
     cfg.read('config/config.cfg')
-    cfg_dict: dict = cfg._sections['base'] | cfg._sections['scrapers'] | cfg._sections['automator']
+    cfg_dict: dict = cfg._sections['base'] | cfg._sections['scrapers']
     cfg_dict['collection_name'] = 'metadata'
 
     handler_class: DBHandlerInterface = next((handler for handler in DBHandlerInterface.__subclasses__() if handler.name == cfg_dict['used_db']), None)

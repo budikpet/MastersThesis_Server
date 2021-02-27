@@ -13,6 +13,8 @@ import requests
 import csv
 import itertools
 import time
+import boto3
+from botocore.exceptions import ClientError
 from server_dataclasses.interfaces import DBHandlerInterface
 
 # Define logger
@@ -38,7 +40,7 @@ logger.addHandler(file_handler)
 logger.addHandler(stream_handler)
 logger.addHandler(warning_handler)
 
-def download_map_data(args: dict) -> Path:
+def download_map_data(args: dict, bucket_name: str) -> Path:
     """
     Use tilepack tool to download MBTiles & GeoJSON.
 
@@ -46,8 +48,12 @@ def download_map_data(args: dict) -> Path:
 
     Args:
         args (dict): All arguments for tilepack tool.
+
+    Returns:
+        Path: Path to the folder where downloaded map data was stored.
     """
     try:
+        logger.info('Downloading map data.')
         tilepack.build_tile_packages(**args)
     except:
         logger.error('Error occured in tilepack tool when downloading MBTiles & GeoJSON')
@@ -67,6 +73,12 @@ def download_map_data(args: dict) -> Path:
     geojson_path = folder_path / 'geojsons'
     with zipfile.ZipFile(folder_path / f'{file_prefix}.zip', 'r') as zip_ref:
         zip_ref.extractall(geojson_path)
+
+    # Upload MBTiles to AWS S3
+    mbtiles_name: str = f'{file_prefix}.mbtiles'
+    mbtiles_path: str = str(folder_path / mbtiles_name)
+    client = boto3.client('s3')
+    response = client.upload_file(mbtiles_path, bucket_name, mbtiles_name)
 
     return folder_path
 
@@ -214,7 +226,7 @@ def update_singular_plural_table(session: requests.Session, db_handler: DBHandle
     db_handler.drop_collection()
     db_handler.insert_many(pens)
 
-def __do_manual_changes__(db_handler: DBHandlerInterface):
+def do_manual_changes(db_handler: DBHandlerInterface):
     """
     Updates data in the given DB using provided CSV files.
 
@@ -239,6 +251,12 @@ def main():
     """
     Run MBTiles & GeoJSON map data downloader/parser.
     """
+
+    # Check S3 environment vars
+    s3_env_vars = ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_DEFAULT_REGION', 'AWS_STORAGE_BUCKET_NAME']
+    s3_missing_vars = list(filter(lambda env_var: env_var not in os.environ, s3_env_vars))
+    if(len(s3_missing_vars) != 0):
+        raise RuntimeError(f'Environment variables "{s3_missing_vars}" not set.')
 
     # Get data from the config file into a flat dictionary
     cfg: ConfigParser = ConfigParser()
@@ -277,13 +295,15 @@ def main():
 
     with requests.Session() as session, handler(**cfg_dict) as handler_instance:
         try:
-            folder_path: Path = download_map_data(args)
-            folder_path: Path = Path(f'tmp/{args["output"]}')
+            folder_path: Path = download_map_data(args, os.getenv('AWS_STORAGE_BUCKET_NAME'))
             pens = parse_map_data(folder_path, handler_instance)
 
             # Animal pens are plural, need singular versions for joining with Zoo Prague lexicon data.
             update_singular_plural_table(session, handler_instance, pens, cfg_dict["min_delay"])
-            __do_manual_changes__(handler_instance)
+            do_manual_changes(handler_instance)
+        except ClientError as ex:
+            logger.error('Error occured when uploading files to AWS S3.')
+            logger.error(traceback.format_exc())
         except Exception as ex:
             logger.error('Unknown error occured')
             logger.error(traceback.format_exc())
