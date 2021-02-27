@@ -261,7 +261,7 @@ def main():
     # Get data from the config file into a flat dictionary
     cfg: ConfigParser = ConfigParser()
     cfg.read('config/config.cfg')
-    cfg_dict: dict = cfg._sections['mbtiles_downloader'] | cfg._sections['base'] | cfg._sections['scrapers']
+    cfg_dict: dict = cfg._sections['mbtiles_downloader'] | cfg._sections['base']
     cfg_dict["min_delay"] = float(os.getenv('MIN_SCRAPING_DELAY', cfg_dict["min_delay"]))
     cfg_dict['collection_name'] = 'animal_pens'
 

@@ -5,8 +5,8 @@ with open('README.md') as f:
 
 deps_required = [
 	'fastapi>=0.63.0', 'requests>=2.25.1', 'beautifulsoup4>=4.9.3', 
-	'levenshtein>==0.12.0', 'rq>=1.7.0', 'heroku3>=4.2.3',
-    'pymongo[srv]>=3.11.3', 'croniter>=1.0.6',
+	'boto3>=1.17.16', 'rq>=1.7.0', 'heroku3>=4.2.3',
+    'pymongo[srv]>=3.11.3', 'croniter>=1.0.6', 'feedparser>=6.0.2',
     'tilepack @ git+https://github.com/tilezen/tilepacks@v1.0.0#egg=tilepack'
 ]
 
@@ -16,10 +16,10 @@ deps_tests = [
 
 setup(
     name='masters_thesis_server',
-    version='0.0.2',
+    version='0.0.3',
     description="""A Python web server created for my Master's thesis.""",
     long_description=long_description,
-    keywords="budikpet, web, fastapi, web scraping",
+    keywords="budikpet, web, fastapi, web scraping, aws, mongodb",
     setup_requires=['pytest-runner'],
     install_requires=deps_required,
     tests_require=deps_tests,
