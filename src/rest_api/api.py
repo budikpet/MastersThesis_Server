@@ -1,67 +1,36 @@
-from fastapi import FastAPI
+from functools import lru_cache
+from fastapi import APIRouter, Depends
 from fastapi.responses import FileResponse
 import os
 from pathlib import Path
-from configparser import ConfigParser
-import logging
-import traceback
 from server_dataclasses.interfaces import DBHandlerInterface
 import boto3
 from botocore.exceptions import ClientError
+from .config import ApiSettings
+from server_dataclasses.models import AnimalData
 
-#TODO Create app using a method which initializes configs
+api_router = APIRouter(prefix='/api')
 
-# Define logger
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s: %(message)s')
+# @lru_cache()
+def get_settings() -> ApiSettings:
+    return ApiSettings()
 
-os.makedirs('log', exist_ok=True)
-file_handler = logging.FileHandler('log/errors.log')
-file_handler.setLevel(logging.ERROR)
-file_handler.setFormatter(formatter)
+@api_router.get('/animals')
+async def animals(only_currently_available: bool = True, settings: ApiSettings = Depends(get_settings)):
+    with settings.handler_class(**settings.cfg_dict) as db_handler:
+        filter_ = {'is_currently_available': True} if only_currently_available else {}
+        animal_data: list[AnimalData] = db_handler.find(filter_, collection_name='zoo_data')
+        metadata: dict = db_handler.find({'_id': 0}, collection_name='metadata')
 
-stream_handler = logging.StreamHandler()
-stream_handler.setLevel(logging.DEBUG)
-stream_handler.setFormatter(formatter)
+    res = {
+        'metadata': metadata,
+        'animals': animal_data
+    }
+    return res
 
-logger.addHandler(file_handler)
-logger.addHandler(stream_handler)
-
-# Get data from the config file into a flat dictionary
-cfg: ConfigParser = ConfigParser()
-cfg.read('config/config.cfg')
-cfg_dict: dict = cfg._sections['base']
-# cfg_dict['collection_name'] = 'zoo_data'
-
-if cfg_dict.get('used_db') is None:
-    raise Exception(f'No DBHandler specified in config file.')
-
-# Get the required db_handler instance
-handler: DBHandlerInterface = next((handler for handler in DBHandlerInterface.__subclasses__() if handler.name == cfg_dict['used_db']), None)
-if handler is None:
-    raise Exception(f'DBHandler called "{cfg_dict["used_db"]}" not found.')
-
-# Create app
-app = FastAPI()
-
-#######################################################################################
-#################### Create API interface #############################################
-#######################################################################################
-
-@app.get('/')
-async def index():
-    return {'status': 'FastAPI application running.'}
-
-@app.get('/animals')
-async def animals(only_currently_available: bool = True):
-
-    return None
-
-@app.get('/mapdata')
-async def map_data():
-    file_prefix: str = cfg['mbtiles_downloader']['output']
+@api_router.get('/mapdata')
+async def map_data(settings: ApiSettings = Depends(get_settings)):
+    file_prefix: str = settings.map_file_prefix
     filename: str = f'{file_prefix}.mbtiles'
     mbtiles_path = Path(f'./tmp/{file_prefix}/{filename}')
 
@@ -69,7 +38,6 @@ async def map_data():
         # Download & cache mbtiles file
         os.makedirs(mbtiles_path.parent, exist_ok=True)
         client = boto3.client('s3')
-        client.download_file(os.getenv('AWS_STORAGE_BUCKET_NAME'), filename, mbtiles_path)
+        client.download_file(settings.aws_storage_bucket_name, filename, mbtiles_path)
 
-    logger.info(f'Returning file called "{filename}"')
     return FileResponse(mbtiles_path, media_type='application/octet-stream', filename=filename)

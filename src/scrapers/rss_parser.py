@@ -5,7 +5,10 @@ import os
 from configparser import ConfigParser
 from server_dataclasses.interfaces import DBHandlerInterface
 
-_URL: str = "https://www.zoopraha.cz/?format=feed&type=rss"
+_URL: str = "https://www.zoopraha.cz/?format=feed&type=rss"                         # Novinky
+_URL2: str = 'https://www.zoopraha.cz/rss-export/akce-v-zoo-praha'                  # Akce v Zoo Praha, pouze nadpisy
+_URL3: str = 'https://www.zoopraha.cz/rss-export/akce-v-zoo-praha-fullarticle'      # Akce v Zoo Praha, plný text
+
 
 # Define logger
 logger = logging.getLogger(__name__)
@@ -41,7 +44,6 @@ def update_news(db_handler: DBHandlerInterface, **kwargs):
     """
     # TODO: Implement
     rss_data = feedparser.parse(_URL)
-    print
 
 def main():
     """
