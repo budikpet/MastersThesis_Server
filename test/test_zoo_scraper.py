@@ -10,7 +10,6 @@ import scrapers.zoo_scraper as zoo_scraper
 from fixtures.fixtures import BaseTestHandler
 from server_dataclasses.models import AnimalData
 from pathlib import Path
-from types import SimpleNamespace
 
 fixtures_path = f"{os.path.dirname(os.path.abspath(__file__))}/fixtures"
 
@@ -98,7 +97,7 @@ def test_run_web_scraper_pavilon_animals(betamax_session: requests.Session, mock
 
     output: list[dict] = list()
     zoo_scraper.run_web_scraper(betamax_session, db_handler=BaseTestHandler(output, find_res), min_delay=sleep_time, collection_name="tmp")
-    output: list[AnimalData] = [SimpleNamespace(**d) for d in output]
+    output: list[AnimalData] = [AnimalData(**d) for d in output]
 
     # Assert
     assert get_animal_id_spy.call_count == len(urls)
@@ -158,7 +157,7 @@ def test_run_web_scraper_basic(betamax_session: requests.Session, mocker: Mocker
 
     output: list[dict] = list()
     zoo_scraper.run_web_scraper(betamax_session, db_handler=BaseTestHandler(output, find_res), min_delay=sleep_time, collection_name="tmp")
-    output: list[AnimalData] = [SimpleNamespace(**d) for d in output]
+    output: list[AnimalData] = [AnimalData(**d) for d in output]
 
     # Assert
     assert get_animal_id_spy.call_count == len(urls)

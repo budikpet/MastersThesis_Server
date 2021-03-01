@@ -7,73 +7,58 @@ import boto3
 from botocore.exceptions import ClientError
 from .config import get_settings
 from types import SimpleNamespace
+from server_dataclasses.rest_models import AnimalsResult, Metadata, BaseResult, AnimalDataOutput
 
 api_router = APIRouter(prefix='/api')
 
-@api_router.get('/animals')
+@api_router.get('/animals', response_model=AnimalsResult)
 async def animals(only_currently_available: bool = True, settings: SimpleNamespace = Depends(get_settings)):
     with settings.handler_class(settings.host, settings.db_name, settings.collection_name) as db_handler:
+        metadata: dict = db_handler.find({'_id': 0}, collection_name='metadata')[0]
         filter_ = {'is_currently_available': True} if only_currently_available else {}
-        animal_data: list[dict] = db_handler.find(filter_, collection_name='zoo_data')
-        metadata: dict = db_handler.find({'_id': 0}, collection_name='metadata')
+        data: list[dict] = db_handler.find(filter_, collection_name='zoo_data')
+        data: list[AnimalDataOutput] = [AnimalDataOutput(**d) for d in data]
 
-    res = {
-        'metadata': metadata,
-        'animals': animal_data
-    }
+    res = AnimalsResult(metadata=Metadata(**metadata),animal_data=data)
     return res
 
-@api_router.get('/animals/{animal_id}')
+@api_router.get('/animals/{animal_id}', response_model=AnimalsResult)
 async def animals(animal_id: int, only_currently_available: bool = True, settings: SimpleNamespace = Depends(get_settings)):
     with settings.handler_class(settings.host, settings.db_name, settings.collection_name) as db_handler:
+        metadata: dict = db_handler.find({'_id': 0}, collection_name='metadata')[0]
         filter_ = {'is_currently_available': True, '_id': animal_id} if only_currently_available else {'_id': animal_id}
-        animal_data: list[dict] = db_handler.find(filter_, collection_name='zoo_data')
-        metadata: dict = db_handler.find({'_id': 0}, collection_name='metadata')
-
-    res = {
-        'metadata': metadata,
-        'animals': animal_data
-    }
+        data: list[dict] = db_handler.find(filter_, collection_name='zoo_data')
+        data: list[AnimalDataOutput] = [AnimalDataOutput(**d) for d in data]
+    
+    res = AnimalsResult(metadata=Metadata(**metadata),animal_data=data)
     return res
 
-@api_router.get('/classes')
+@api_router.get('/classes', response_model=BaseResult)
 async def classes(settings: SimpleNamespace = Depends(get_settings)):
     with settings.handler_class(settings.host, settings.db_name, settings.collection_name) as db_handler:
-        metadata: dict = db_handler.find({'_id': 0}, collection_name='metadata')
+        metadata: dict = db_handler.find({'_id': 0}, collection_name='metadata')[0]
         data: list[dict] = db_handler.find({}, projection={'class_': 1}, collection_name='zoo_data')
         data: set[str] = {d['class_'].capitalize() for d in data}
 
-    res = {
-        'metadata': metadata,
-        'animals': data
-    }
-    return res
+    return BaseResult(metadata=Metadata(**metadata),data=data)
 
-@api_router.get('/biotops')
+@api_router.get('/biotops', response_model=BaseResult)
 async def biotops(settings: SimpleNamespace = Depends(get_settings)):
     with settings.handler_class(settings.host, settings.db_name, settings.collection_name) as db_handler:
-        metadata: dict = db_handler.find({'_id': 0}, collection_name='metadata')
+        metadata: dict = db_handler.find({'_id': 0}, collection_name='metadata')[0]
         data: list[dict] = db_handler.find({}, projection={'biotop': 1}, collection_name='zoo_data')
         data: set[str] = {d['biotop'].capitalize() for d in data}
 
-    res = {
-        'metadata': metadata,
-        'animals': data
-    }
-    return res
+    return BaseResult(metadata=Metadata(**metadata),data=data)
 
-@api_router.get('/foods')
+@api_router.get('/foods', response_model=BaseResult)
 async def foods(settings: SimpleNamespace = Depends(get_settings)):
     with settings.handler_class(settings.host, settings.db_name, settings.collection_name) as db_handler:
-        metadata: dict = db_handler.find({'_id': 0}, collection_name='metadata')
+        metadata: dict = db_handler.find({'_id': 0}, collection_name='metadata')[0]
         data: list[dict] = db_handler.find({}, projection={'food': 1}, collection_name='zoo_data')
         data: set[str] = {d['food'].capitalize() for d in data}
 
-    res = {
-        'metadata': metadata,
-        'animals': data
-    }
-    return res
+    return BaseResult(metadata=Metadata(**metadata),data=data)
 
 @api_router.get('/mapdata')
 async def map_data(settings: SimpleNamespace = Depends(get_settings)):
