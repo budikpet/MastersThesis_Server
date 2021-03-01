@@ -7,7 +7,6 @@ from server_dataclasses.interfaces import DBHandlerInterface
 import boto3
 from botocore.exceptions import ClientError
 from .config import ApiSettings
-from server_dataclasses.models import AnimalData
 
 api_router = APIRouter(prefix='/api')
 
@@ -19,12 +18,64 @@ def get_settings() -> ApiSettings:
 async def animals(only_currently_available: bool = True, settings: ApiSettings = Depends(get_settings)):
     with settings.handler_class(**settings.cfg_dict) as db_handler:
         filter_ = {'is_currently_available': True} if only_currently_available else {}
-        animal_data: list[AnimalData] = db_handler.find(filter_, collection_name='zoo_data')
+        animal_data: list[dict] = db_handler.find(filter_, collection_name='zoo_data')
         metadata: dict = db_handler.find({'_id': 0}, collection_name='metadata')
 
     res = {
         'metadata': metadata,
         'animals': animal_data
+    }
+    return res
+
+@api_router.get('/animals/{animal_id}')
+async def animals(animal_id: int, only_currently_available: bool = True, settings: ApiSettings = Depends(get_settings)):
+    with settings.handler_class(**settings.cfg_dict) as db_handler:
+        filter_ = {'is_currently_available': True, '_id': animal_id} if only_currently_available else {'_id': animal_id}
+        animal_data: list[dict] = db_handler.find(filter_, collection_name='zoo_data')
+        metadata: dict = db_handler.find({'_id': 0}, collection_name='metadata')
+
+    res = {
+        'metadata': metadata,
+        'animals': animal_data
+    }
+    return res
+
+@api_router.get('/classes')
+async def classes(settings: ApiSettings = Depends(get_settings)):
+    with settings.handler_class(**settings.cfg_dict) as db_handler:
+        metadata: dict = db_handler.find({'_id': 0}, collection_name='metadata')
+        data: list[dict] = db_handler.find({}, projection={'class_': 1}, collection_name='zoo_data')
+        data: set[str] = {d['class_'].capitalize() for d in data}
+
+    res = {
+        'metadata': metadata,
+        'animals': data
+    }
+    return res
+
+@api_router.get('/biotops')
+async def biotops(settings: ApiSettings = Depends(get_settings)):
+    with settings.handler_class(**settings.cfg_dict) as db_handler:
+        metadata: dict = db_handler.find({'_id': 0}, collection_name='metadata')
+        data: list[dict] = db_handler.find({}, projection={'biotop': 1}, collection_name='zoo_data')
+        data: set[str] = {d['biotop'].capitalize() for d in data}
+
+    res = {
+        'metadata': metadata,
+        'animals': data
+    }
+    return res
+
+@api_router.get('/foods')
+async def foods(settings: ApiSettings = Depends(get_settings)):
+    with settings.handler_class(**settings.cfg_dict) as db_handler:
+        metadata: dict = db_handler.find({'_id': 0}, collection_name='metadata')
+        data: list[dict] = db_handler.find({}, projection={'food': 1}, collection_name='zoo_data')
+        data: set[str] = {d['food'].capitalize() for d in data}
+
+    res = {
+        'metadata': metadata,
+        'animals': data
     }
     return res
 
