@@ -7,7 +7,7 @@ from pytest_mock.plugin import MockerFixture
 import os
 from urllib.parse import urlparse, ParseResult
 import scrapers.zoo_scraper as zoo_scraper
-from fixtures import BaseTestHandler
+from fixtures.fixtures import BaseTestHandler
 from server_dataclasses.models import AnimalData
 from pathlib import Path
 from types import SimpleNamespace
