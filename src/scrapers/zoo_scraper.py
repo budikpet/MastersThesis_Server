@@ -15,7 +15,10 @@ from datetime import datetime
 _URL: ParseResult = urlparse(
     "https://www.zoopraha.cz/zvirata-a-expozice/lexikon-zvirat")
 _MULTI_WHITESPACE = re.compile(r"\s+")
-_OUTSIDE_INSIDE_PARANTHESIS = re.compile(r'(.*)\((.*)\)')
+
+# Used for splitting strings such as 'group 1 str (group 2 str)' into two substrings
+# Group 1 matches everything before the first '(', group 2 matches everything inside outermost '()'
+_OUTSIDE_INSIDE_PARANTHESIS = re.compile(r'([^\(]*)\((.*)\)$')
 
 # Define logger
 logger = logging.getLogger(__name__)
