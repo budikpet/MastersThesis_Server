@@ -142,14 +142,17 @@ def __get_csv_data__() -> list[dict[str, list]]:
 
 def get_singular(plural: str, session: requests.Session, singular_plural_data: list, collection_name: str, min_delay: float) -> str:
     """
-    Returns a singular for the given plural.
+    Returns a singular forms for the given plural form.
 
-    Primarily returns from the singular_plural collection. If the value is not found then tries to find the value in an online dictionary.
+    The algorithm:
+    - primarily returns data from the singular_plural DB table. 
+    - if the value is not found then tries to find the value in an online dictionary
+    - otherwise the value is passed to administrator as a warning
 
     Args:
-        plural (str): [description]
-        session (requests.Session): [description]
-        db_handler (DBHandlerInterface): [description]
+        plural (str): Input plural form.
+        session (requests.Session): HTTP session for online dictionary.
+        db_handler (DBHandlerInterface): A DBHandlerInterface instance of chosen database used to store data from Zoo Prague lexicon.
         collection_name (str): Name of the collection where the values can be found.
 
     Returns:
@@ -189,7 +192,19 @@ def get_singular(plural: str, session: requests.Session, singular_plural_data: l
     logger.warn(f'No singulars found for a plural "{plural}".')
     return None
 
-def update_singular_plural_table(session: requests.Session, db_handler: DBHandlerInterface, pens: list[dict[int, str]], min_delay: float):
+def update_tables(session: requests.Session, db_handler: DBHandlerInterface, pens: list[dict[int, str]], min_delay: float):
+    """
+    Use new map data to update the DB tables that:
+    
+    - holds transformations between singular and plural forms of animal names. It is used to connect data from Zoo Prague lexicon and map data.
+    - holds data about animal pens. Also connects these animal pens and Zoo Prague lexicon data using singular forms if possible.
+
+    Args:
+        session (requests.Session): HTTP session
+        db_handler (DBHandlerInterface): A DBHandlerInterface instance of chosen database used to store data from Zoo Prague lexicon.
+        pens (list[dict[int, str]]): Map data of located animal pens in Zoo Prague.
+        min_delay (float): Delay between HTTP requests.
+    """
     collection_name: str = 'singular_plural'
     if(not db_handler.collection_exists(collection_name=collection_name)):
         # Init singular_plural collection
@@ -231,7 +246,7 @@ def do_manual_changes(db_handler: DBHandlerInterface):
     Updates data in the given DB using provided CSV files.
 
     Args:
-        db_handler (DBHandlerInterface): [description]
+        db_handler (DBHandlerInterface): A DBHandlerInterface instance of chosen database used to store data from Zoo Prague lexicon.
     """
     p = 'config/zoo_parts.csv'
     data: list = list()
@@ -250,6 +265,8 @@ def do_manual_changes(db_handler: DBHandlerInterface):
 def main():
     """
     Run MBTiles & GeoJSON map data downloader/parser.
+
+    Downloads vector map data in MBTiles file and GeoJSON files. Stores the MBTiles file in AWS S3 DB and other data in the main DB.
     """
 
     # Check S3 environment vars
@@ -299,7 +316,7 @@ def main():
             pens = parse_map_data(folder_path, handler_instance)
 
             # Animal pens are plural, need singular versions for joining with Zoo Prague lexicon data.
-            update_singular_plural_table(session, handler_instance, pens, cfg_dict["min_delay"])
+            update_tables(session, handler_instance, pens, cfg_dict["min_delay"])
             do_manual_changes(handler_instance)
         except ClientError as ex:
             logger.error('Error occured when uploading files to AWS S3.')

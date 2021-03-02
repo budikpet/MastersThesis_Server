@@ -140,6 +140,17 @@ def parse_table_data(table: Tag) -> dict[str, str]:
 
 
 def __add_parsed_table_data__(res: AnimalData, attrs: list[str], parsed_value: str):
+    """
+    Simplification function.
+
+    There are attributes in AnimalData such as :py:attr:`AnimalData.food` and :py:attr:`AnimalData.food_detail` that are found in a table row in the HTML page.
+    This function finds them and properly populates them in AnimalData object.
+
+    Args:
+        res (AnimalData): Animal data object of the currently parsed HTML page.
+        attrs (list[str]): Attributes to set in the AnimalData object.
+        parsed_value (str): The value where unparsed values are.
+    """
     if parsed_value is None:
         return
 
@@ -151,12 +162,25 @@ def __add_parsed_table_data__(res: AnimalData, attrs: list[str], parsed_value: s
         setattr(res, attrs[0], parsed_value.strip())
 
 def __add_map_locations__(animalData: AnimalData, animal_pens: list[dict], buildings: list[dict]):
-    # Add map locations for animals located in pavilons
+    """
+    Populates :py:attr:`AnimalData.map_locations` attribute.
+
+    Finding locations:
+
+    - firstly tries to find animals in zoo houses and other zoo parts using the official data from Zoo Prague.
+    - if not found in official data then it tries to find then in animal pens found using map data.
+
+    Args:
+        res (AnimalData): Animal data object of the currently parsed HTML page.
+        animal_pens (list[dict]): List of animal pens found in map data.
+        buildings (list[dict]): List of buildings and zoo parts found in official data and map data.
+    """
+    # Add map locations for animals located in zoo houses
     if(animalData.location_in_zoo is not None):
-        pavilons = [building for building in buildings if building['name'].lower() == animalData.location_in_zoo.lower()]
-        if(len(pavilons) == 1):
-            # This animal is in a pavilon
-            animalData.map_locations = [pavilons[0]['_id']]
+        zoo_houses = [building for building in buildings if building['name'].lower() == animalData.location_in_zoo.lower()]
+        if(len(zoo_houses) == 1):
+            # This animal is in a zoo house
+            animalData.map_locations = [zoo_houses[0]['_id']]
             return
 
     # Add map locations for animals located in pens
@@ -175,7 +199,7 @@ def parse_animal_data(soup: BeautifulSoup, url: ParseResult, animal_pens: list[d
         soup (BeautifulSoup): Page to parse.
         url (ParseResult): URL of the page to parse.
         animal_pens (list[dict]): List of animal pens available in Zoo Prague map data directly from DB.
-        buildings (list[dict]): List of buildings in Zoo Prague map data directly from DB. Contains pavilons.
+        buildings (list[dict]): List of buildings in Zoo Prague map data directly from DB. Contains zoo houses and other parts where animals could reside.
 
     Returns:
         AnimalData: Object with data that was parsed from the page.

@@ -45,6 +45,19 @@ def __schedule_long_job__():
     q.enqueue(zoo_scraper.main)
 
 def handle_update(handler: DBHandlerInterface, heroku_api_key: str, config: dict, **kwargs):
+    """
+    Basically the FSM that handles scripts that need Heroku worker dyno to run.
+
+    Handles scheduling updates and switching the worker dyno on/off.
+
+    Args:
+        db_handler (DBHandlerInterface): A DBHandlerInterface instance of chosen database used to store data from Zoo Prague lexicon.
+        heroku_api_key (str): An API key for Heroku.
+        config (dict): Data from the configuration file.
+
+    Raises:
+        RuntimeError: Raised if a scheduler_state received from DB is unknown.
+    """
     metadata: dict = next(iter(handler.find({"_id": 0})), None)
     logger.info(f'Received metadata: {metadata}')
     
@@ -81,7 +94,7 @@ def handle_update(handler: DBHandlerInterface, heroku_api_key: str, config: dict
 
 def main():
     """
-    Starts the script which behaves like a Finite State Machine that takes care of running scheduled jobs. Primarily started by Heroku Scheduler.
+    Starts the script which behaves like a Finite State Machine (FSM) that takes care of running scheduled jobs. Primarily started by Heroku Scheduler.
     """
     logger.info('Scheduler script started.')
 

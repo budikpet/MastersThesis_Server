@@ -54,7 +54,7 @@ def test_get_animal_urls(betamax_session: requests.Session):
 
 def test_run_web_scraper_pavilon_animals(betamax_session: requests.Session, mocker: MockerFixture):
     """
-    Test the whole workflow of Zoo Prague lexicon web scraper. Tests animals that are in pavilons, not in animal pens.
+    Test the whole workflow of Zoo Prague lexicon web scraper. Tests animals that are in zoo houses, not in animal pens.
 
     It uses a test DBHandler which uses local filesystem.
 

@@ -5,7 +5,7 @@ class AnimalDataOutput(BaseModel):
     """
     Holds data about animal parsed from Zoo Prague lexicon.
 
-    Used as a response model
+    Used as a response model.
     """
 
     id: int = Field(..., alias='_id')
@@ -56,6 +56,9 @@ class AnimalDataOutput(BaseModel):
     map_locations: list[str] = list()
 
 class Metadata(BaseModel):
+    """
+    Response model of metadata.
+    """
     _id: int = 0
     next_update: datetime
     last_update_start: datetime

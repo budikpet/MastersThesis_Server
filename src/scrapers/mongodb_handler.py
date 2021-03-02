@@ -6,7 +6,8 @@ import os
 
 
 class MongoDBHandler(DBHandlerInterface):
-    """Implementation of a DBHandler which uses remote MongoDB.
+    """
+    Implementation of a DBHandler which uses remote MongoDB.
 
     Args:
         DBHandlerInterface ([type]): Interface it implements.

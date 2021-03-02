@@ -4,7 +4,11 @@ from enum import IntEnum
 
 @dataclass
 class AnimalData():
-    """Holds data about animal parsed from Zoo Prague lexicon."""
+    """
+    Holds data about animal parsed from Zoo Prague lexicon.
+
+    Mainly used for parsed data that is to be inserted to a DB.
+    """
 
     ### Parsed data
     _id: int = -1
@@ -55,6 +59,9 @@ class AnimalData():
     map_locations: list[str] = field(default_factory=list)
 
 class SchedulerStates(IntEnum):
+    """
+    Contains all possible states of the scheduler script.
+    """
     # Waiting for update date. If update date is reached then add scraping job and start worker dyno
     WAIT = 0
     # Worker dyno had been started and still has work. 
@@ -64,5 +71,8 @@ class SchedulerStates(IntEnum):
 
 
 class DynoStates(IntEnum):
+    """
+    Contains the turned on/off state of Heroku worker dyno.
+    """
     DOWN = 0
     UP = 1

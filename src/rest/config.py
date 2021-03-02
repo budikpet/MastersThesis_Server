@@ -5,7 +5,16 @@ from server_dataclasses.interfaces import DBHandlerInterface
 from types import SimpleNamespace
 
 @lru_cache
-def get_settings() -> dict:
+def get_settings() -> SimpleNamespace:
+    """
+    Initialize global settings for FastAPI endpoints.
+
+    Raises:
+        RuntimeError: Raised when some environment or config variables aren't set.
+
+    Returns:
+        SimpleNamespace: An object containing all required global settings for FastAPI endpoints.
+    """
     # Check S3 environment vars
     s3_env_vars = ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_DEFAULT_REGION', 'AWS_STORAGE_BUCKET_NAME']
     s3_missing_vars = list(filter(lambda env_var: env_var not in os.environ, s3_env_vars))
@@ -19,12 +28,12 @@ def get_settings() -> dict:
     cfg_dict['collection_name'] = 'animals_data'
 
     if cfg_dict.get('used_db') is None:
-        raise Exception(f'No DBHandler specified in config file.')
+        raise RuntimeError(f'No DBHandler specified in config file.')
 
     # Get the required db_handler instance
     handler: DBHandlerInterface = next((handler for handler in DBHandlerInterface.__subclasses__() if handler.name == cfg_dict['used_db']), None)
     if handler is None:
-        raise Exception(f'DBHandler called "{cfg_dict["used_db"]}" not found.')
+        raise RuntimeError(f'DBHandler called "{cfg_dict["used_db"]}" not found.')
 
     res = {
         'aws_storage_bucket_name': os.getenv('AWS_STORAGE_BUCKET_NAME'),

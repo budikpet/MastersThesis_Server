@@ -26,6 +26,9 @@ logger.addHandler(file_handler)
 logger.addHandler(stream_handler)
 
 def main():
+    """
+    Run RQ worker which receives commands from a queue and runs them.
+    """
     with Connection(conn):
         worker = Worker(map(Queue, listen))
         logger.info("Running worker")
