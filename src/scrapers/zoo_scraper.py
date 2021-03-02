@@ -288,7 +288,7 @@ def main():
     cfg.read('config/config.cfg')
     cfg_dict: dict = cfg._sections['base']
     cfg_dict["min_delay"] = float(os.getenv('MIN_SCRAPING_DELAY', cfg_dict["min_delay"]))
-    cfg_dict['collection_name'] = 'zoo_data'
+    cfg_dict['collection_name'] = 'animals_data'
 
     if cfg_dict.get('used_db') is None:
         raise Exception(f'No DBHandler specified in config file.')
