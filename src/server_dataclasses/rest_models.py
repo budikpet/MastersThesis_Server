@@ -67,7 +67,7 @@ class Metadata(BaseModel):
 
 class AnimalsResult(BaseModel):
     metadata: Metadata
-    animal_data: list[AnimalDataOutput]
+    data: list[AnimalDataOutput]
 
 class BaseResult(BaseModel):
     metadata: Metadata

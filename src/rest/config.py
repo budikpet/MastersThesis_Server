@@ -38,7 +38,8 @@ def get_settings() -> SimpleNamespace:
     res = {
         'aws_storage_bucket_name': os.getenv('AWS_STORAGE_BUCKET_NAME'),
         'map_file_prefix': cfg['mbtiles_downloader']['output'],
-        'handler_class': handler
+        'handler_class': handler,
+        'config_data': cfg_dict
     }
     
-    return SimpleNamespace(**(res | cfg_dict))
+    return SimpleNamespace(**res)

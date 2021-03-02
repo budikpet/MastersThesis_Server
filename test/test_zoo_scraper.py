@@ -10,6 +10,7 @@ import scrapers.zoo_scraper as zoo_scraper
 from fixtures.fixtures import BaseTestHandler
 from server_dataclasses.models import AnimalData
 from pathlib import Path
+from fixtures.utils import compare_lists
 
 fixtures_path = f"{os.path.dirname(os.path.abspath(__file__))}/fixtures"
 
@@ -164,16 +165,16 @@ def test_run_web_scraper_basic(betamax_session: requests.Session, mocker: Mocker
     assert len(output) == len(urls)
 
     zelva_obrovska: AnimalData = next(filter(lambda animal: 'želva obrovská' in animal.name.lower(), output), None)
-    assert zelva_obrovska.map_locations == [1]
+    assert compare_lists(zelva_obrovska.map_locations, [1])
 
     zelva_ostni: AnimalData = next(filter(lambda animal: 'želva ostnitá' in animal.name.lower(), output), None)
-    assert zelva_ostni.map_locations == [0]
+    assert compare_lists(zelva_ostni.map_locations, [0])
 
     zelva_pardali: AnimalData = next(filter(lambda animal: 'želva pardálí' in animal.name.lower(), output), None)
-    assert zelva_pardali.map_locations == [0]
+    assert compare_lists(zelva_pardali.map_locations, [0])
 
     sova: AnimalData = next(filter(lambda animal: 'sova' in animal.name.lower(), output), None)
-    assert sorted(sova.map_locations) == [2,3]
+    assert compare_lists(sova.map_locations, [2,3])
 
     tygr: AnimalData = next(filter(lambda animal: 'tygr' in animal.name.lower(), output), None)
     assert tygr.is_currently_available
@@ -182,10 +183,10 @@ def test_run_web_scraper_basic(betamax_session: requests.Session, mocker: Mocker
     assert tygr.about_placement_in_zoo_prague is None
     assert tygr.location_in_zoo is None
     assert tygr.food_detail is None
-    assert tygr.map_locations == [4]
+    assert compare_lists(tygr.map_locations, [4])
 
     alpaka: AnimalData = next(filter(lambda animal: 'alpaka' in animal.name.lower(), output), None)
     assert not alpaka.is_currently_available
-    assert alpaka.map_locations == []
+    assert len(alpaka.map_locations) == 0
 
     pass

@@ -100,8 +100,13 @@ class BaseTestHandler(DBHandlerInterface):
     def find(self, filter_: dict, projection: dict = None, db_name: str = None, collection_name: str = None, **kwargs) -> list[dict]:
         if(self.find_output is None):
             return []
+
+        res = self.find_output.get(collection_name, [])
+
+        for key, value in filter_.items():
+            res = [d for d in res if d[key] == value]
         
-        return self.find_output.get(collection_name, [])
+        return res
 
     def collection_exists(self, db_name: str = None, collection_name: str = None, **kwargs) -> bool:
         return True
