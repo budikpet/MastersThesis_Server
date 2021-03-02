@@ -36,7 +36,7 @@ logger.addHandler(stream_handler)
 
 def __change_worker_dyno_state__(state: DynoStates, heroku_api_key: str, **kwargs):
     heroku_conn = heroku3.from_key(heroku_api_key)
-    app: App = heroku_conn.app('masters-thesis-server')
+    app: App = heroku_conn.app('budikpet-zoo-prague')
     app.scale_formation_process('worker', state)
 
 def __schedule_long_job__():
