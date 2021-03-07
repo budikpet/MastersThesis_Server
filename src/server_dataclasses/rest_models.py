@@ -53,7 +53,7 @@ class AnimalDataOutput(BaseModel):
     is_currently_available: bool = True
 
     # IDs of locations of the animal's pens in map data
-    map_locations: list[str] = list()
+    map_locations: list[int] = list()
 
 class Metadata(BaseModel):
     """

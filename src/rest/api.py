@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 import os
 from pathlib import Path
@@ -12,13 +12,13 @@ from server_dataclasses.rest_models import AnimalsResult, Metadata, BaseResult, 
 api_router = APIRouter(prefix='/api')
 
 @api_router.get('/animals', response_model=AnimalsResult)
-async def animals(only_currently_available: bool = True, settings: SimpleNamespace = Depends(get_settings)):
+async def animals(include_currently_unavailable: bool = False, settings: SimpleNamespace = Depends(get_settings)):
     """
     Return information about all animals that live in Zoo Prague.
     """
     with settings.handler_class(**settings.config_data) as db_handler:
         metadata: dict = db_handler.find({'_id': 0}, collection_name='metadata')[0]
-        filter_ = {'is_currently_available': True} if only_currently_available else {}
+        filter_ = {} if include_currently_unavailable else {'is_currently_available': True}
         data: list[dict] = db_handler.find(filter_, collection_name='animals_data')
         data: list[AnimalDataOutput] = [AnimalDataOutput(**d) for d in data]
 
@@ -26,15 +26,18 @@ async def animals(only_currently_available: bool = True, settings: SimpleNamespa
     return res
 
 @api_router.get('/animals/{animal_id}', response_model=AnimalsResult)
-async def animals(animal_id: int, only_currently_available: bool = True, settings: SimpleNamespace = Depends(get_settings)):
+async def animal(animal_id: int, include_currently_unavailable: bool = False, settings: SimpleNamespace = Depends(get_settings)):
     """
     Return information about an animal of a specific ID.
     """
     with settings.handler_class(**settings.config_data) as db_handler:
         metadata: dict = db_handler.find({'_id': 0}, collection_name='metadata')[0]
-        filter_ = {'is_currently_available': True, '_id': animal_id} if only_currently_available else {'_id': animal_id}
+        filter_ = {'_id': animal_id} if include_currently_unavailable else {'is_currently_available': True, '_id': animal_id}
         data: list[dict] = db_handler.find(filter_, collection_name='animals_data')
         data: list[AnimalDataOutput] = [AnimalDataOutput(**d) for d in data]
+
+    if(len(data) == 0):
+        raise HTTPException(status_code=404, detail="Item not found")
     
     res = AnimalsResult(metadata=Metadata(**metadata),data=data)
     return res
