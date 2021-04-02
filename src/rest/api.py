@@ -51,6 +51,8 @@ async def classes(settings: SimpleNamespace = Depends(get_settings)):
         metadata: dict = db_handler.find({'_id': 0}, collection_name='metadata')[0]
         data: list[dict] = db_handler.find({}, projection={'class_': 1}, collection_name='animals_data')
         data: set[str] = {d['class_'].capitalize() for d in data}
+        data: list[str] = list(data)
+        data.sort()
 
     return BaseResult(metadata=Metadata(**metadata),data=data)
 
@@ -63,6 +65,9 @@ async def biotops(settings: SimpleNamespace = Depends(get_settings)):
         metadata: dict = db_handler.find({'_id': 0}, collection_name='metadata')[0]
         data: list[dict] = db_handler.find({}, projection={'biotop': 1}, collection_name='animals_data')
         data: set[str] = {d['biotop'].capitalize() for d in data}
+        data: set[str] = {substr.strip().capitalize() for fullString in data for substr in fullString.split(',') if fullString != ''}
+        data: list[str] = list(data)
+        data.sort()
 
     return BaseResult(metadata=Metadata(**metadata),data=data)
 
@@ -75,6 +80,9 @@ async def foods(settings: SimpleNamespace = Depends(get_settings)):
         metadata: dict = db_handler.find({'_id': 0}, collection_name='metadata')[0]
         data: list[dict] = db_handler.find({}, projection={'food': 1}, collection_name='animals_data')
         data: set[str] = {d['food'].capitalize() for d in data}
+        data: set[str] = {substr.strip().capitalize() for fullString in data for substr in fullString.split(',') if fullString != ''}
+        data: list[str] = list(data)
+        data.sort()
 
     return BaseResult(metadata=Metadata(**metadata),data=data)
 
