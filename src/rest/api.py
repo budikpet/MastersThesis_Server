@@ -104,6 +104,6 @@ async def map_data(settings: SimpleNamespace = Depends(get_settings)):
         # Download & cache mbtiles file
         os.makedirs(mbtiles_path.parent, exist_ok=True)
         client = boto3.client('s3')
-        client.download_file(settings.aws_storage_bucket_name, filename, mbtiles_path)
+        client.download_file(settings.aws_storage_bucket_name, filename, str(mbtiles_path))
 
     return FileResponse(mbtiles_path, media_type='application/octet-stream', filename=filename)
