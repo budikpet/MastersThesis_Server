@@ -180,15 +180,15 @@ def __add_map_locations__(animalData: AnimalData, animal_pens: list[dict], build
         zoo_houses = [building for building in buildings if building['name'].lower() == animalData.location_in_zoo.lower()]
         if(len(zoo_houses) == 1):
             # This animal is in a zoo house
-            animalData.map_locations = [zoo_houses[0]['_id']]
+            animalData.map_locations = [zoo_houses[0]]
             return
 
     # Add map locations for animals located in pens
-    animalData.map_locations = [pen["_id"] for pen in animal_pens if animalData.name.lower() in pen['singular_names']]
+    animalData.map_locations = [pen for pen in animal_pens if animalData.name.lower() in pen['singular_names']]
     if(len(animalData.map_locations) == 0):
         # Pen for full name not found. There may be an animal pen only for the first name
         first_name: str = animalData.name.lower().split(' ')[0].strip()
-        animalData.map_locations = [pen["_id"] for pen in animal_pens if first_name in pen['singular_names']]
+        animalData.map_locations = [pen for pen in animal_pens if first_name in pen['singular_names']]
 
 
 def parse_animal_data(soup: BeautifulSoup, url: ParseResult, animal_pens: list[dict], buildings: list[dict]) -> AnimalData:

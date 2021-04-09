@@ -56,7 +56,7 @@ class AnimalData():
     is_currently_available: bool = True
 
     # IDs of locations of the animal's pens in map data
-    map_locations: list[int] = field(default_factory=list)
+    map_locations: list[dict] = field(default_factory=list)
 
 class SchedulerStates(IntEnum):
     """
