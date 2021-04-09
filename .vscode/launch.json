@@ -5,11 +5,23 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: MapDownloader",
+            "type": "python",
+            "request": "launch",
+            "module": "scrapers",
+            "args": [
+                "map_downloader"
+            ]
+        },
+        {
             "name": "Python: FastAPI",
             "type": "python",
             "request": "launch",
             "module": "uvicorn",
-            "args": ["src.rest.main:app","--reload"]
+            "args": [
+                "src.rest.main:app",
+                "--reload"
+            ]
         }
     ]
 }

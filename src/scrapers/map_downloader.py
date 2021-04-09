@@ -103,24 +103,40 @@ def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[di
 
             # Animal pens and some zoo buildings and parts
             for poi in data['pois']['features']:
-                poi = poi['properties']
-                if(not poi.get('id')):
+                props = poi['properties']
+                if(not props.get('id')):
                     continue
-                if(poi['kind'] == 'animal'):
-                    animal_pens[poi['id']] = poi['name']
-                elif(poi['kind'] == 'zoo_part'):
-                    buildings[poi['id']] = poi['name']
+
+                id_: int = props['id']
+                if(props['kind'] == 'animal'):
+                    animal_pens[id_] = {
+                        'geometry': poi['geometry'],
+                        'name': props['name'],
+                        '_id': id_
+                    }
+                elif(props['kind'] == 'zoo_part'):
+                    if(props.get('label_placement') is None):
+                        buildings[id_] = {
+                            'geometry': poi['geometry'],
+                            'name': props['name'],
+                            '_id': id_
+                        }
             
             # Buildings
             for poi in data['buildings']['features']:
-                poi = poi['properties']
-                if(poi['kind'] == 'building' and poi.get("id") is not None and poi.get("name") is not None):
-                    buildings[poi['id']] = poi['name']
+                props = poi['properties']
+                if(props['kind'] == 'building' and props.get("id") is not None and props.get("name") is not None and props.get('label_placement') is None):
+                    id_: int = props['id']
+                    buildings[id_] = {
+                        'geometry': poi['geometry'],
+                        'name': props['name'],
+                        '_id': id_
+                    }
 
     db_handler.drop_collection(collection_name='zoo_parts')
-    db_handler.insert_many(data=[{"_id": k, "name": v} for k,v in buildings.items()], collection_name='zoo_parts')
+    db_handler.insert_many(data=buildings.values(), collection_name='zoo_parts')
 
-    return [{"_id": k, "name": v} for k,v in animal_pens.items()]
+    return animal_pens.values()
 
 def __get_csv_data__() -> list[dict[str, list]]:
     """
