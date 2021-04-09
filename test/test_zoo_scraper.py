@@ -107,7 +107,7 @@ def test_run_web_scraper_pavilon_animals(betamax_session: requests.Session, mock
     assert all([len(animal.map_locations) == 1 for animal in output])
 
     # Each animal has a map_location which is the same as its index in the output
-    assert all([animal.map_locations[0] == index for index, animal in enumerate(output)])
+    assert all([animal.map_locations[0]['_id'] == index for index, animal in enumerate(output)])
 
 def test_run_web_scraper_basic(betamax_session: requests.Session, mocker: MockerFixture):
     """
@@ -165,16 +165,16 @@ def test_run_web_scraper_basic(betamax_session: requests.Session, mocker: Mocker
     assert len(output) == len(urls)
 
     zelva_obrovska: AnimalData = next(filter(lambda animal: 'želva obrovská' in animal.name.lower(), output), None)
-    assert compare_lists(zelva_obrovska.map_locations, [1])
+    assert compare_lists([loc['_id'] for loc in zelva_obrovska.map_locations], [1])
 
     zelva_ostni: AnimalData = next(filter(lambda animal: 'želva ostnitá' in animal.name.lower(), output), None)
-    assert compare_lists(zelva_ostni.map_locations, [0])
+    assert compare_lists([loc['_id'] for loc in zelva_ostni.map_locations], [0])
 
     zelva_pardali: AnimalData = next(filter(lambda animal: 'želva pardálí' in animal.name.lower(), output), None)
-    assert compare_lists(zelva_pardali.map_locations, [0])
+    assert compare_lists([loc['_id'] for loc in zelva_pardali.map_locations], [0])
 
     sova: AnimalData = next(filter(lambda animal: 'sova' in animal.name.lower(), output), None)
-    assert compare_lists(sova.map_locations, [2,3])
+    assert compare_lists([loc['_id'] for loc in sova.map_locations], [2,3])
 
     tygr: AnimalData = next(filter(lambda animal: 'tygr' in animal.name.lower(), output), None)
     assert tygr.is_currently_available
@@ -183,7 +183,7 @@ def test_run_web_scraper_basic(betamax_session: requests.Session, mocker: Mocker
     assert tygr.about_placement_in_zoo_prague is None
     assert tygr.location_in_zoo is None
     assert tygr.food_detail is None
-    assert compare_lists(tygr.map_locations, [4])
+    assert compare_lists([loc['_id'] for loc in tygr.map_locations], [4])
 
     alpaka: AnimalData = next(filter(lambda animal: 'alpaka' in animal.name.lower(), output), None)
     assert not alpaka.is_currently_available
