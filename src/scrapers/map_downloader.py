@@ -82,6 +82,36 @@ def download_map_data(args: dict, bucket_name: str) -> Path:
 
     return folder_path
 
+def __create_map_location__(poi: dict) -> dict:
+    """
+    Create a new animal_pens/zoo_parts document.
+
+    Args:
+        poi (dict): Currently picked point data.
+
+    Returns:
+        dict: Created map location data.
+    """
+    props = poi['properties']
+    geom = poi['geometry']
+    _type = geom['type']
+    coords = geom['coordinates']
+
+    if(_type == 'Point'):
+        # Point has different structure of coordinates which needs to be normalized
+        coords = [[[coords[0], coords[1]]]]
+
+    res: dict = {
+        'geometry': {
+            '_type': _type,
+            'coordinates': coords
+        },
+        'name': props['name'],
+        '_id': props['id']
+    }
+
+    return res
+
 def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[dict[int, str]]:
     """
     Parses GeoJSON data for data that needs to be integrated with Zoo Prague data.
@@ -104,45 +134,22 @@ def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[di
             # Animal pens and some zoo buildings and parts
             for poi in data['pois']['features']:
                 props = poi['properties']
-                geom = poi['geometry']
                 if(not props.get('id')):
                     continue
 
                 id_: int = props['id']
                 if(props['kind'] == 'animal'):
-                    animal_pens[id_] = {
-                        'geometry': {
-                            '_type': geom['type'],
-                            'coordinates': geom['coordinates']
-                        },
-                        'name': props['name'],
-                        '_id': id_
-                    }
+                    animal_pens[id_] = __create_map_location__(poi)
                 elif(props['kind'] == 'zoo_part'):
                     if(props.get('label_placement') is None):
-                        buildings[id_] = {
-                            'geometry': {
-                                '_type': geom['type'],
-                                'coordinates': geom['coordinates']
-                            },
-                            'name': props['name'],
-                            '_id': id_
-                        }
+                        buildings[id_] = __create_map_location__(poi)
             
             # Buildings
             for poi in data['buildings']['features']:
                 props = poi['properties']
-                geom = poi['geometry']
                 if(props['kind'] == 'building' and props.get("id") is not None and props.get("name") is not None and props.get('label_placement') is None):
                     id_: int = props['id']
-                    buildings[id_] = {
-                        'geometry': {
-                            '_type': geom['type'],
-                            'coordinates': geom['coordinates']
-                        },
-                        'name': props['name'],
-                        '_id': id_
-                    }
+                    buildings[id_] = __create_map_location__(poi)
 
     db_handler.drop_collection(collection_name='zoo_parts')
     db_handler.insert_many(data=buildings.values(), collection_name='zoo_parts')
