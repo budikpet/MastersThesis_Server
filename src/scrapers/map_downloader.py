@@ -104,20 +104,27 @@ def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[di
             # Animal pens and some zoo buildings and parts
             for poi in data['pois']['features']:
                 props = poi['properties']
+                geom = poi['geometry']
                 if(not props.get('id')):
                     continue
 
                 id_: int = props['id']
                 if(props['kind'] == 'animal'):
                     animal_pens[id_] = {
-                        'geometry': poi['geometry'],
+                        'geometry': {
+                            '_type': geom['type'],
+                            'coordinates': geom['coordinates']
+                        },
                         'name': props['name'],
                         '_id': id_
                     }
                 elif(props['kind'] == 'zoo_part'):
                     if(props.get('label_placement') is None):
                         buildings[id_] = {
-                            'geometry': poi['geometry'],
+                            'geometry': {
+                                '_type': geom['type'],
+                                'coordinates': geom['coordinates']
+                            },
                             'name': props['name'],
                             '_id': id_
                         }
@@ -125,10 +132,14 @@ def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[di
             # Buildings
             for poi in data['buildings']['features']:
                 props = poi['properties']
+                geom = poi['geometry']
                 if(props['kind'] == 'building' and props.get("id") is not None and props.get("name") is not None and props.get('label_placement') is None):
                     id_: int = props['id']
                     buildings[id_] = {
-                        'geometry': poi['geometry'],
+                        'geometry': {
+                            '_type': geom['type'],
+                            'coordinates': geom['coordinates']
+                        },
                         'name': props['name'],
                         '_id': id_
                     }
