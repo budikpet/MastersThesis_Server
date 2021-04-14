@@ -80,6 +80,13 @@ def handle_update(handler: DBHandlerInterface, heroku_api_key: str, config: dict
         
     elif(scheduler_state == SchedulerStates.UPDATING):
         logger.info('UPDATING')
+        diff = datetime.now() - metadata['last_update_start']
+        if((diff.days * 24 + diff.seconds / 3600) > 8.0):
+            # The script probably got stuck, reset needed
+            logger.info('UPDATING -> WAIT')
+            __change_worker_dyno_state__(DynoStates.DOWN, heroku_api_key)
+            handler.update_one({"_id": 0}, {"$set": {"scheduler_state": SchedulerStates.WAIT}})
+
     elif(scheduler_state == SchedulerStates.WORK_DONE):
         # This state should be set only by zoo_scraper
         logger.info('WORK DONE -> WAIT')
