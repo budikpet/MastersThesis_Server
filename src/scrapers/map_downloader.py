@@ -82,7 +82,7 @@ def download_map_data(args: dict, bucket_name: str) -> Path:
 
     return folder_path
 
-def __create_map_location__(poi: dict) -> dict:
+def __create_map_location__(poi: dict, is_animal_pen: bool = False) -> dict:
     """
     Create a new animal_pens/zoo_parts document.
 
@@ -107,6 +107,8 @@ def __create_map_location__(poi: dict) -> dict:
             'coordinates': coords
         },
         'name': props['name'],
+        'is_animal_pen': is_animal_pen,
+        'is_building': (_type == 'Polygon'),
         '_id': props['id']
     }
 
@@ -139,7 +141,7 @@ def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[di
 
                 id_: int = props['id']
                 if(props['kind'] == 'animal'):
-                    animal_pens[id_] = __create_map_location__(poi)
+                    animal_pens[id_] = __create_map_location__(poi, is_animal_pen=True)
                 elif(props['kind'] == 'zoo_part'):
                     if(props.get('label_placement') is None):
                         buildings[id_] = __create_map_location__(poi)

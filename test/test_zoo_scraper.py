@@ -89,10 +89,10 @@ def test_run_web_scraper_pavilon_animals(betamax_session: requests.Session, mock
     # List of animal_pens results the method needs
     find_res: dict[str, list] = {
         'zoo_parts': [
-            {"_id" : 0, "name" : "Pavilon šelem a plazů"},
-            {"_id" : 1, "name" : "Afrika zblízka"},
-            {"_id" : 2, "name" : "Pavilon velkých želv"},
-            {"_id" : 3, "name" : "Rákosův pavilon"}
+            {"_id" : 0, "name" : "Pavilon šelem a plazů", 'is_building': True},
+            {"_id" : 1, "name" : "Afrika zblízka", 'is_building': True},
+            {"_id" : 2, "name" : "Pavilon velkých želv", 'is_building': True},
+            {"_id" : 3, "name" : "Rákosův pavilon", 'is_building': True}
         ]
     }
 

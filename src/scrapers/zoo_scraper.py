@@ -167,28 +167,30 @@ def __add_map_locations__(animalData: AnimalData, animal_pens: list[dict], build
 
     Finding locations:
 
-    - firstly tries to find animals in zoo houses and other zoo parts using the official data from Zoo Prague.
-    - if not found in official data then it tries to find then in animal pens found using map data.
+    - firstly tries to find animals in animal pens found using map data
+    - then tries to find animals in zoo houses using the official data from Zoo Prague.
 
     Args:
         res (AnimalData): Animal data object of the currently parsed HTML page.
         animal_pens (list[dict]): List of animal pens found in map data.
         buildings (list[dict]): List of buildings and zoo parts found in official data and map data.
     """
-    # Add map locations for animals located in zoo houses
-    if(animalData.location_in_zoo is not None):
-        zoo_houses = [building for building in buildings if building['name'].lower() == animalData.location_in_zoo.lower()]
-        if(len(zoo_houses) == 1):
-            # This animal is in a zoo house
-            animalData.map_locations = [zoo_houses[0]]
-            return
-
     # Add map locations for animals located in pens
     animalData.map_locations = [pen for pen in animal_pens if animalData.name.lower() in pen['singular_names']]
     if(len(animalData.map_locations) == 0):
         # Pen for full name not found. There may be an animal pen only for the first name
         first_name: str = animalData.name.lower().split(' ')[0].strip()
         animalData.map_locations = [pen for pen in animal_pens if first_name in pen['singular_names']]
+
+    # Add map locations for animals located in zoo houses
+    if(animalData.location_in_zoo is not None):
+        zoo_houses = [building for building in buildings if building['name'].lower() == animalData.location_in_zoo.lower()]
+        if(len(zoo_houses) == 1):
+            # This animal is in a zoo house / zoo part
+            zoo_house = zoo_houses[0]
+            if(zoo_house['is_building'] == True):
+                # This animal is in a zoo house
+                animalData.map_locations.append(zoo_house)
 
 
 def parse_animal_data(soup: BeautifulSoup, url: ParseResult, animal_pens: list[dict], buildings: list[dict]) -> AnimalData:
