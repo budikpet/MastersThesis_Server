@@ -41,17 +41,6 @@
                     50.11791558
                 ]
             ]
-        },
-        "type": "Feature",
-        "properties": {
-            "kind": "path",
-            "sort_rank": 354,
-            "landuse_kind": "fence",
-            "access": "customers",
-            "source": "openstreetmap.org",
-            "min_zoom": 14.0,
-            "kind_detail": "footway",
-            "id": 467901846
         }
     },
     {
@@ -148,17 +137,6 @@
                     50.11739308
                 ]
             ]
-        },
-        "type": "Feature",
-        "properties": {
-            "kind": "path",
-            "sort_rank": 354,
-            "landuse_kind": "fence",
-            "access": "customers",
-            "source": "openstreetmap.org",
-            "min_zoom": 14.0,
-            "kind_detail": "footway",
-            "id": 87510026
         }
     },
     {
@@ -307,20 +285,6 @@
                     50.11852597
                 ]
             ]
-        },
-        "type": "Feature",
-        "properties": {
-            "kind": "path",
-            "collision_rank": 1016,
-            "name": "Zakázanka",
-            "sort_rank": 354,
-            "kind_detail": "footway",
-            "access": "customers",
-            "source": "openstreetmap.org",
-            "min_zoom": 13.0,
-            "landuse_kind": "fence",
-            "id": 30000641,
-            "incline": "up"
         }
     },
     {
@@ -373,21 +337,6 @@
                     50.11731226
                 ]
             ]
-        },
-        "type": "Feature",
-        "properties": {
-            "kind": "path",
-            "name:en": "Parrot Trail",
-            "name": "Papouščí stezka",
-            "sort_rank": 354,
-            "kind_detail": "footway",
-            "surface": "asphalt",
-            "access": "customers",
-            "source": "openstreetmap.org",
-            "min_zoom": 13.0,
-            "collision_rank": 1016,
-            "landuse_kind": "fence",
-            "id": 27126741
         }
     },
     {
@@ -424,17 +373,6 @@
                     50.11808199
                 ]
             ]
-        },
-        "type": "Feature",
-        "properties": {
-            "kind": "path",
-            "sort_rank": 354,
-            "landuse_kind": "fence",
-            "access": "customers",
-            "source": "openstreetmap.org",
-            "min_zoom": 14.0,
-            "kind_detail": "footway",
-            "id": 27126878
         }
     },
     {
@@ -467,16 +405,6 @@
                     50.11879341
                 ]
             ]
-        },
-        "type": "Feature",
-        "properties": {
-            "source": "openstreetmap.org",
-            "kind": "path",
-            "kind_detail": "footway",
-            "sort_rank": 354,
-            "landuse_kind": "zoo",
-            "min_zoom": 14.0,
-            "id": 469714394
         }
     },
     {
@@ -505,17 +433,6 @@
                     50.11798441
                 ]
             ]
-        },
-        "type": "Feature",
-        "properties": {
-            "kind": "path",
-            "sort_rank": 354,
-            "landuse_kind": "fence",
-            "access": "customers",
-            "source": "openstreetmap.org",
-            "min_zoom": 14.0,
-            "kind_detail": "footway",
-            "id": 354198716
         }
     },
     {
@@ -572,17 +489,6 @@
                     50.11734348
                 ]
             ]
-        },
-        "type": "Feature",
-        "properties": {
-            "kind": "path",
-            "sort_rank": 354,
-            "landuse_kind": "fence",
-            "access": "customers",
-            "source": "openstreetmap.org",
-            "min_zoom": 14.0,
-            "kind_detail": "footway",
-            "id": 557965406
         }
     },
     {
@@ -623,17 +529,6 @@
                     50.1171231
                 ]
             ]
-        },
-        "type": "Feature",
-        "properties": {
-            "kind": "path",
-            "sort_rank": 354,
-            "landuse_kind": "fence",
-            "access": "customers",
-            "source": "openstreetmap.org",
-            "min_zoom": 14.0,
-            "kind_detail": "footway",
-            "id": 27126739
         }
     },
     {
@@ -662,17 +557,6 @@
                     50.11766547
                 ]
             ]
-        },
-        "type": "Feature",
-        "properties": {
-            "kind": "path",
-            "sort_rank": 354,
-            "landuse_kind": "fence",
-            "access": "customers",
-            "source": "openstreetmap.org",
-            "min_zoom": 14.0,
-            "kind_detail": "footway",
-            "id": 354198717
         }
     },
     {
@@ -709,17 +593,6 @@
                     50.11706699
                 ]
             ]
-        },
-        "type": "Feature",
-        "properties": {
-            "kind": "path",
-            "sort_rank": 354,
-            "landuse_kind": "fence",
-            "access": "customers",
-            "source": "openstreetmap.org",
-            "min_zoom": 14.0,
-            "kind_detail": "footway",
-            "id": 27126727
         }
     },
     {
@@ -760,17 +633,6 @@
                     50.11689978
                 ]
             ]
-        },
-        "type": "Feature",
-        "properties": {
-            "kind": "path",
-            "sort_rank": 354,
-            "landuse_kind": "fence",
-            "access": "customers",
-            "source": "openstreetmap.org",
-            "min_zoom": 14.0,
-            "kind_detail": "footway",
-            "id": 467901849
         }
     },
     {
@@ -823,17 +685,6 @@
                     50.11633107
                 ]
             ]
-        },
-        "type": "Feature",
-        "properties": {
-            "kind": "path",
-            "sort_rank": 354,
-            "landuse_kind": "fence",
-            "access": "customers",
-            "source": "openstreetmap.org",
-            "min_zoom": 14.0,
-            "kind_detail": "footway",
-            "id": 27126848
         }
     },
     {
@@ -886,17 +737,6 @@
                     50.11603458
                 ]
             ]
-        },
-        "type": "Feature",
-        "properties": {
-            "kind": "path",
-            "sort_rank": 354,
-            "landuse_kind": "fence",
-            "access": "customers",
-            "source": "openstreetmap.org",
-            "min_zoom": 14.0,
-            "kind_detail": "footway",
-            "id": 318760847
         }
     },
     {
@@ -933,18 +773,6 @@
                     50.11577439
                 ]
             ]
-        },
-        "type": "Feature",
-        "properties": {
-            "kind": "path",
-            "sort_rank": 404,
-            "kind_detail": "path",
-            "surface": "wood",
-            "source": "openstreetmap.org",
-            "min_zoom": 13.0,
-            "landuse_kind": "fence",
-            "is_bridge": true,
-            "id": 486592304
         }
     },
     {
@@ -1013,17 +841,6 @@
                     50.11517168
                 ]
             ]
-        },
-        "type": "Feature",
-        "properties": {
-            "kind": "path",
-            "sort_rank": 354,
-            "landuse_kind": "fence",
-            "access": "customers",
-            "source": "openstreetmap.org",
-            "min_zoom": 14.0,
-            "kind_detail": "footway",
-            "id": 318760846
         }
     },
     {
@@ -1054,16 +871,6 @@
                     ]
                 ]
             ]
-        },
-        "type": "Feature",
-        "properties": {
-            "source": "openstreetmap.org",
-            "kind": "path",
-            "kind_detail": "footway",
-            "sort_rank": 354,
-            "landuse_kind": "fence",
-            "min_zoom": 14.0,
-            "id": 469714378
         }
     },
     {
@@ -1144,16 +951,6 @@
                     50.11463901
                 ]
             ]
-        },
-        "type": "Feature",
-        "properties": {
-            "source": "openstreetmap.org",
-            "kind": "minor_road",
-            "kind_detail": "service",
-            "sort_rank": 358,
-            "landuse_kind": "parking",
-            "min_zoom": 14.0,
-            "id": 41280174
         }
     },
     {
@@ -1178,17 +975,6 @@
                     50.11477197
                 ]
             ]
-        },
-        "type": "Feature",
-        "properties": {
-            "kind": "minor_road",
-            "service": "parking_aisle",
-            "sort_rank": 356,
-            "landuse_kind": "parking",
-            "source": "openstreetmap.org",
-            "min_zoom": 15.0,
-            "kind_detail": "service",
-            "id": 363074839
         }
     },
     {
@@ -1233,16 +1019,6 @@
                     50.1169818
                 ]
             ]
-        },
-        "type": "Feature",
-        "properties": {
-            "source": "openstreetmap.org",
-            "kind": "path",
-            "footway": "sidewalk",
-            "sort_rank": 354,
-            "kind_detail": "footway",
-            "min_zoom": 15.0,
-            "id": 176845087
         }
     },
     {
@@ -1269,6 +1045,106 @@
                 [
                     14.41179086,
                     50.11667749
+                ]
+            ]
+        }
+    },
+    {
+        "_id": 554014665,
+        "geometry": {
+            "type": "LineString",
+            "coordinates": [
+                [
+                    14.4140625,
+                    50.11673229
+                ],
+                [
+                    14.41393352,
+                    50.11673958
+                ],
+                [
+                    14.41363429,
+                    50.11679321
+                ],
+                [
+                    14.41216787,
+                    50.11705589
+                ],
+                [
+                    14.41208147,
+                    50.11707137
+                ],
+                [
+                    14.41207399,
+                    50.11705589
+                ],
+                [
+                    14.41206215,
+                    50.1170314
+                ],
+                [
+                    14.41196603,
+                    50.11679989
+                ],
+                [
+                    14.41191429,
+                    50.11667219
+                ]
+            ]
+        }
+    },
+    {
+        "_id": 33757185,
+        "geometry": {
+            "type": "LineString",
+            "coordinates": [
+                [
+                    14.4120158,
+                    50.1171148
+                ],
+                [
+                    14.41233545,
+                    50.11705589
+                ],
+                [
+                    14.41273373,
+                    50.11698249
+                ],
+                [
+                    14.41361363,
+                    50.11682207
+                ],
+                [
+                    14.41396532,
+                    50.11677271
+                ],
+                [
+                    14.4140625,
+                    50.11677392
+                ]
+            ]
+        }
+    },
+    {
+        "_id": 554014659,
+        "geometry": {
+            "type": "LineString",
+            "coordinates": [
+                [
+                    14.41206215,
+                    50.1170314
+                ],
+                [
+                    14.41195085,
+                    50.11705386
+                ],
+                [
+                    14.41194198,
+                    50.11705589
+                ],
+                [
+                    14.41180937,
+                    50.11708629
                 ]
             ]
         }
