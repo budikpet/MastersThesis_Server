@@ -139,6 +139,10 @@ def construct_one_line(starting_line: LineCoords, coords: MultiCoords):
     """
     Concatenate all line parts into one line.
     """
+    if(len(coords) == 1):
+        # This line has only one part so it does not need to be connected
+        return starting_line
+    
     while(len(coords) > 0):
         end_point = starting_line[-1]
         found_line = None
@@ -157,14 +161,14 @@ def construct_one_line(starting_line: LineCoords, coords: MultiCoords):
     
     return starting_line
 
-def find_starting_line(coords: MultiCoords) -> LineCoords:
+def find_starting_line(line_parts: MultiCoords) -> LineCoords:
     """
     Finds a line whose starting coordinate is not at the end of any other line.
     """
-    for starting_line in reversed(coords):
+    for starting_line in reversed(line_parts):
         found_starting_line = True
         start_coord = starting_line[0]
-        for line in reversed(coords):
+        for line in reversed(line_parts):
             if start_coord == line[-1]:
                 found_starting_line = False
                 break
@@ -176,9 +180,29 @@ def find_starting_line(coords: MultiCoords) -> LineCoords:
         # Starting line not found
         return None
     
-    coords.remove(starting_line)
+    line_parts.remove(starting_line)
     
     return starting_line
+
+def remove_duplicate_lines(line_parts: MultiCoords):
+    duplicates = set()
+    line_parts.reverse()
+    
+    for line in line_parts:
+        cnt = 0
+        sline = tuple(line)
+        for other_line in line_parts:
+            if(sline == tuple(other_line)):
+                cnt += 1
+        
+        if(cnt > 1):
+            duplicates.add((cnt - 1, sline))
+    
+    for (count, duplicate) in duplicates:
+        for _ in range(count):
+            line_parts.remove(list(duplicate))
+
+    line_parts.reverse()
 
 def cleanup_roads(roads: dict[int: dict]):
     """
@@ -191,8 +215,9 @@ def cleanup_roads(roads: dict[int: dict]):
     for road in roads.values():
         _id: int = road['properties']['id']
         coords = road['geometry']['coordinates']
+
+        remove_duplicate_lines(coords)
         
-        road['_id'] = _id
         starting_line: LineCoords = find_starting_line(coords)
         
         if(starting_line is None):
@@ -207,6 +232,7 @@ def cleanup_roads(roads: dict[int: dict]):
             logger.error("Could not form line string for {}".format(_id))
             continue
         
+        road['_id'] = _id
         road['geometry'] = {
             'type': 'LineString',
             'coordinates': line_string
