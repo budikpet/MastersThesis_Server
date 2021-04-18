@@ -278,7 +278,7 @@ def roads_manual_update(roads: dict):
             for road in json.load(f):
                 _id = road['_id']
                 if(_id in roads):
-                    roads[_id] = road
+                    roads[_id]['geometry'] = road['geometry']
 
 def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[dict[int, str]]:
     """
