@@ -139,10 +139,6 @@ def construct_one_line(starting_line: LineCoords, coords: MultiCoords):
     """
     Concatenate all line parts into one line.
     """
-    if(len(coords) == 1):
-        # This line has only one part so it does not need to be connected
-        return starting_line
-    
     while(len(coords) > 0):
         end_point = starting_line[-1]
         found_line = None
@@ -204,6 +200,13 @@ def remove_duplicate_lines(line_parts: MultiCoords):
 
     line_parts.reverse()
 
+def update_road(road: dict, line_string: LineCoords):
+    road['_id'] = road['properties']['id']
+    road['geometry'] = {
+        'type': 'LineString',
+        'coordinates': line_string
+    }
+
 def cleanup_roads(roads: dict[int: dict]):
     """
     Transforms geometries of all roads into a LineString by connecting all its parts into one line.
@@ -215,6 +218,11 @@ def cleanup_roads(roads: dict[int: dict]):
     for road in roads.values():
         _id: int = road['properties']['id']
         coords = road['geometry']['coordinates']
+
+        if(len(coords) == 1):
+            # This line has only one part so it does not need to be connected
+            update_road(road, line_string)
+            continue
 
         remove_duplicate_lines(coords)
         
@@ -230,13 +238,10 @@ def cleanup_roads(roads: dict[int: dict]):
         
         if(line_string is None):
             logger.error("Could not form line string for {}".format(_id))
+            coords.append(starting_line)
             continue
         
-        road['_id'] = _id
-        road['geometry'] = {
-            'type': 'LineString',
-            'coordinates': line_string
-        }
+        update_road(road, line_string)
     
     for _id in removed_roads:
         roads.pop(_id, None)
