@@ -201,7 +201,6 @@ def remove_duplicate_lines(line_parts: MultiCoords):
     line_parts.reverse()
 
 def update_road(road: dict, line_string: LineCoords):
-    road['_id'] = road['properties']['id']
     road['geometry'] = {
         'type': 'LineString',
         'coordinates': line_string
@@ -217,6 +216,7 @@ def cleanup_roads(roads: dict[int: dict]):
     removed_roads = list()
     for road in roads.values():
         _id: int = road['properties']['id']
+        road['_id'] = _id
         coords = road['geometry']['coordinates']
 
         if(len(coords) == 1):
@@ -382,7 +382,30 @@ def get_singular(plural: str, session: requests.Session, singular_plural_data: l
     logger.warn(f'No singulars found for a plural "{plural}".')
     return None
 
-def update_tables(session: requests.Session, db_handler: DBHandlerInterface, pens: list[dict[int, str]], min_delay: float):
+def animals_manual_update(db_handler: DBHandlerInterface):
+    """
+    Updates data in the given DB using provided files.
+
+    Args:
+        db_handler (DBHandlerInterface): A DBHandlerInterface instance of chosen database used to store data from Zoo Prague lexicon.
+    """
+
+    # Update zoo_parts, mainly because some have slightly different names in Zoo data and map data
+    p = 'config/zoo_parts.csv'
+    data: list = list()
+    if(os.path.isfile(p)):
+        with open(p) as f:
+            next(f) # skip first line
+            csv_reader = csv.reader(f, delimiter=';')
+            for _id, name in csv_reader:
+                data = {
+                    "$set": {
+                        "name": name
+                    }
+                }
+                db_handler.update_one(filter_={"_id": int(_id)}, data=data, upsert=True, collection_name='zoo_parts')
+
+def update_animal_tables(session: requests.Session, db_handler: DBHandlerInterface, pens: list[dict[int, str]], min_delay: float):
     """
     Use new map data to update the DB tables that:
     
@@ -428,29 +451,11 @@ def update_tables(session: requests.Session, db_handler: DBHandlerInterface, pen
                         pen_animal_names.append(' '.join(pair))
 
         pen["singular_names"] = pen_animal_names
+    
     db_handler.drop_collection()
     db_handler.insert_many(pens)
 
-def do_manual_changes(db_handler: DBHandlerInterface):
-    """
-    Updates data in the given DB using provided CSV files.
-
-    Args:
-        db_handler (DBHandlerInterface): A DBHandlerInterface instance of chosen database used to store data from Zoo Prague lexicon.
-    """
-    p = 'config/zoo_parts.csv'
-    data: list = list()
-    if(os.path.isfile(p)):
-        with open(p) as f:
-            next(f) # skip first line
-            csv_reader = csv.reader(f, delimiter=';')
-            for _id, name in csv_reader:
-                data = {
-                    "$set": {
-                        "name": name
-                    }
-                }
-                db_handler.update_one(filter_={"_id": int(_id)}, data=data, upsert=True, collection_name='zoo_parts')
+    animals_manual_update(db_handler)
 
 def main():
     """
@@ -505,9 +510,7 @@ def main():
             folder_path: Path = download_map_data(args, os.getenv('AWS_STORAGE_BUCKET_NAME'))
             pens = parse_map_data(folder_path, handler_instance)
 
-            # Animal pens are plural, need singular versions for joining with Zoo Prague lexicon data.
-            update_tables(session, handler_instance, pens, cfg_dict["min_delay"])
-            do_manual_changes(handler_instance)
+            update_animal_tables(session, handler_instance, pens, cfg_dict["min_delay"])
         except ClientError as ex:
             logger.error('Error occured when uploading files to AWS S3.')
             logger.error(traceback.format_exc())
