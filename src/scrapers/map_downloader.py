@@ -187,24 +187,33 @@ def cleanup_roads(roads: dict[int: dict]):
     Args:
         roads (dict[int): All roads parsed from GeoJSONS. Roads with the same ID had their coordinates merged already.
     """
+    removed_roads = list()
     for road in roads.values():
+        _id: int = road['properties']['id']
         coords = road['geometry']['coordinates']
+        
+        road['_id'] = _id
         starting_line: LineCoords = find_starting_line(coords)
         
         if(starting_line is None):
-            logger.error("Could not find starting line for {}".format(road['properties']['id']))
+            # These roads do not matter in Zoo Prague
+            logger.error("Could not find starting line for {}".format(_id))
+            removed_roads.append(_id)
             continue
         
         line_string: LineCoords = construct_one_line(starting_line, coords)
         
         if(line_string is None):
-            logger.error("Could not form line string for {}".format(road['properties']['id']))
+            logger.error("Could not form line string for {}".format(_id))
             continue
         
         road['geometry'] = {
             'type': 'LineString',
             'coordinates': line_string
         }
+    
+    for _id in removed_roads:
+        roads.pop(_id, None)
 
 def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[dict[int, str]]:
     """
