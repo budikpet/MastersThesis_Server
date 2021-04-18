@@ -246,6 +246,26 @@ def cleanup_roads(roads: dict[int: dict]):
     for _id in removed_roads:
         roads.pop(_id, None)
 
+def zoo_parts_manual_update(zoo_parts: dict):
+    """
+    Updates zoo_parts data in the given DB using a provided CSV file.
+
+    Args:
+        db_handler (DBHandlerInterface): A DBHandlerInterface instance of chosen database used to store data from Zoo Prague lexicon.
+    """
+
+    # Update zoo_parts, mainly because some have slightly different names in Zoo data and map data
+    p = 'config/zoo_parts.csv'
+    data: list = list()
+    if(os.path.isfile(p)):
+        with open(p) as f:
+            next(f) # skip first line
+            csv_reader = csv.reader(f, delimiter=';')
+            for _id, name in csv_reader:
+                _id = int(_id)
+                if(_id in zoo_parts):
+                    zoo_parts[_id]['name'] = name
+
 def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[dict[int, str]]:
     """
     Parses GeoJSON data for data that needs to be integrated with Zoo Prague data.
@@ -260,7 +280,7 @@ def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[di
         list[dict[int, str]]: A list of animal pen data that was parsed from GeoJSONs.
     """
     animal_pens: dict = dict()
-    buildings: dict = dict()
+    zoo_parts: dict = dict()
     roads: dict[int: dict] = dict()
     for geojson in iglob(str(folder_path / 'geojsons' / 'all' / '**/*.json'), recursive=True):
         with open(geojson) as f:
@@ -277,14 +297,14 @@ def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[di
                     animal_pens[id_] = __create_map_location__(poi, is_animal_pen=True)
                 elif(props['kind'] == 'zoo_part'):
                     if(props.get('label_placement') is None):
-                        buildings[id_] = __create_map_location__(poi)
+                        zoo_parts[id_] = __create_map_location__(poi)
             
             # Buildings
             for poi in data['buildings']['features']:
                 props = poi['properties']
                 if(props['kind'] == 'building' and props.get("id") is not None and props.get("name") is not None and props.get('label_placement') is None):
                     id_: int = props['id']
-                    buildings[id_] = __create_map_location__(poi)
+                    zoo_parts[id_] = __create_map_location__(poi)
 
             # Roads
             for road in data['roads']['features']:
@@ -304,12 +324,17 @@ def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[di
 
     cleanup_roads(roads)
 
+    # Do manual updates
+    zoo_parts_manual_update(zoo_parts)
+
+    # Add collections to DB
     db_handler.drop_collection(collection_name='zoo_parts')
-    db_handler.insert_many(data=buildings.values(), collection_name='zoo_parts')
+    db_handler.insert_many(data=zoo_parts.values(), collection_name='zoo_parts')
 
     db_handler.drop_collection(collection_name='road_nodes')
     db_handler.insert_many(data=roads.values(), collection_name='road_nodes')
 
+    # Return animal_pens collection since it needs to be processed further
     return animal_pens.values()
 
 def __get_csv_data__() -> list[dict[str, list]]:
@@ -382,29 +407,6 @@ def get_singular(plural: str, session: requests.Session, singular_plural_data: l
     logger.warn(f'No singulars found for a plural "{plural}".')
     return None
 
-def animals_manual_update(db_handler: DBHandlerInterface):
-    """
-    Updates data in the given DB using provided files.
-
-    Args:
-        db_handler (DBHandlerInterface): A DBHandlerInterface instance of chosen database used to store data from Zoo Prague lexicon.
-    """
-
-    # Update zoo_parts, mainly because some have slightly different names in Zoo data and map data
-    p = 'config/zoo_parts.csv'
-    data: list = list()
-    if(os.path.isfile(p)):
-        with open(p) as f:
-            next(f) # skip first line
-            csv_reader = csv.reader(f, delimiter=';')
-            for _id, name in csv_reader:
-                data = {
-                    "$set": {
-                        "name": name
-                    }
-                }
-                db_handler.update_one(filter_={"_id": int(_id)}, data=data, upsert=True, collection_name='zoo_parts')
-
 def update_animal_tables(session: requests.Session, db_handler: DBHandlerInterface, pens: list[dict[int, str]], min_delay: float):
     """
     Use new map data to update the DB tables that:
@@ -454,8 +456,6 @@ def update_animal_tables(session: requests.Session, db_handler: DBHandlerInterfa
     
     db_handler.drop_collection()
     db_handler.insert_many(pens)
-
-    animals_manual_update(db_handler)
 
 def main():
     """
