@@ -17,6 +17,10 @@ import boto3
 from botocore.exceptions import ClientError
 from server_dataclasses.interfaces import DBHandlerInterface
 
+# Definitions
+LineCoords = list[tuple[float, float]]
+MultiCoords = list[LineCoords]
+
 # Define logger
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -114,6 +118,94 @@ def __create_map_location__(poi: dict, is_animal_pen: bool = False) -> dict:
 
     return res
 
+def prepare_geometry(geometry: dict) -> dict:
+    """
+    Changes all geometries to MultiLineString type and each coordinate into a tuple.
+    """
+    coords = list()
+    
+    if(geometry['type'] == 'LineString'):
+        coords = [[tuple(coord) for coord in geometry['coordinates']]]
+    else:
+        for line in geometry['coordinates']:
+            coords.append([tuple(coord) for coord in line])
+            
+    return {
+        'type': 'MultiLineString',
+        'coordinates': coords
+    }
+
+def construct_one_line(starting_line: LineCoords, coords: MultiCoords):
+    """
+    Concatenate all line parts into one line.
+    """
+    while(len(coords) > 0):
+        end_point = starting_line[-1]
+        found_line = None
+        for line in reversed(coords):
+            if(end_point == line[0]):
+                # Found a line that connects to the end of starting line
+                found_line = line
+                break
+        
+        if(found_line is None):
+            return None
+        else:
+            coords.remove(found_line)
+            starting_line.remove(end_point)
+            starting_line.extend(found_line)
+    
+    return starting_line
+
+def find_starting_line(coords: MultiCoords) -> LineCoords:
+    """
+    Finds a line whose starting coordinate is not at the end of any other line.
+    """
+    for starting_line in reversed(coords):
+        found_starting_line = True
+        start_coord = starting_line[0]
+        for line in reversed(coords):
+            if start_coord == line[-1]:
+                found_starting_line = False
+                break
+        
+        if(found_starting_line == True):
+            break
+            
+    if(found_starting_line == False):
+        # Starting line not found
+        return None
+    
+    coords.remove(starting_line)
+    
+    return starting_line
+
+def cleanup_roads(roads: dict[int: dict]):
+    """
+    Transforms geometries of all roads into a LineString by connecting all its parts into one line.
+
+    Args:
+        roads (dict[int): All roads parsed from GeoJSONS. Roads with the same ID had their coordinates merged already.
+    """
+    for road in roads.values():
+        coords = road['geometry']['coordinates']
+        starting_line: LineCoords = find_starting_line(coords)
+        
+        if(starting_line is None):
+            logger.error("Could not find starting line for {}".format(road['properties']['id']))
+            continue
+        
+        line_string: LineCoords = construct_one_line(starting_line, coords)
+        
+        if(line_string is None):
+            logger.error("Could not form line string for {}".format(road['properties']['id']))
+            continue
+        
+        road['geometry'] = {
+            'type': 'LineString',
+            'coordinates': line_string
+        }
+
 def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[dict[int, str]]:
     """
     Parses GeoJSON data for data that needs to be integrated with Zoo Prague data.
@@ -129,6 +221,7 @@ def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[di
     """
     animal_pens: dict = dict()
     buildings: dict = dict()
+    roads: dict[int: dict] = dict()
     for geojson in iglob(str(folder_path / 'geojsons' / 'all' / '**/*.json'), recursive=True):
         with open(geojson) as f:
             data = json.load(f)
@@ -153,8 +246,24 @@ def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[di
                     id_: int = props['id']
                     buildings[id_] = __create_map_location__(poi)
 
+            # Roads
+            for road in data['roads']['features']:
+                _id = road['properties']['id']
+                road['geometry'] = prepare_geometry(road['geometry'])
+                
+                if(_id in roads):
+                    # A road with the same id already found, add its coordinates to the already stored road
+                    roads[_id]['geometry']['coordinates'].extend(road['geometry']['coordinates'])
+                else:
+                    roads[_id] = road
+
+    cleanup_roads(roads)
+
     db_handler.drop_collection(collection_name='zoo_parts')
     db_handler.insert_many(data=buildings.values(), collection_name='zoo_parts')
+
+    db_handler.drop_collection(collection_name='road_nodes')
+    db_handler.insert_many(data=roads.values(), collection_name='road_nodes')
 
     return animal_pens.values()
 
