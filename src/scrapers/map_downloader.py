@@ -248,15 +248,14 @@ def cleanup_roads(roads: dict[int: dict]):
 
 def zoo_parts_manual_update(zoo_parts: dict):
     """
-    Updates zoo_parts data in the given DB using a provided CSV file.
+    Updates zoo_parts data using a provided CSV file.
 
     Args:
-        db_handler (DBHandlerInterface): A DBHandlerInterface instance of chosen database used to store data from Zoo Prague lexicon.
+        zoo_parts (dict): Parsed zoo parts and buildings.
     """
 
     # Update zoo_parts, mainly because some have slightly different names in Zoo data and map data
-    p = 'config/zoo_parts.csv'
-    data: list = list()
+    p = 'config/manual_zoo_parts.csv'
     if(os.path.isfile(p)):
         with open(p) as f:
             next(f) # skip first line
@@ -265,6 +264,21 @@ def zoo_parts_manual_update(zoo_parts: dict):
                 _id = int(_id)
                 if(_id in zoo_parts):
                     zoo_parts[_id]['name'] = name
+
+def roads_manual_update(roads: dict):
+    """
+    Updates roads data using a provided JSON file.
+
+    Args:
+        roads (dict): [description]
+    """
+    p = 'config/manual_roads.json'
+    if(os.path.isfile(p)):
+        with open(p) as f:
+            for road in json.load(f):
+                _id = road['_id']
+                if(_id in roads):
+                    roads[_id] = road
 
 def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[dict[int, str]]:
     """
@@ -326,13 +340,14 @@ def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[di
 
     # Do manual updates
     zoo_parts_manual_update(zoo_parts)
+    roads_manual_update(roads)
 
     # Add collections to DB
     db_handler.drop_collection(collection_name='zoo_parts')
     db_handler.insert_many(data=zoo_parts.values(), collection_name='zoo_parts')
 
-    db_handler.drop_collection(collection_name='road_nodes')
-    db_handler.insert_many(data=roads.values(), collection_name='road_nodes')
+    db_handler.drop_collection(collection_name='roads')
+    db_handler.insert_many(data=roads.values(), collection_name='roads')
 
     # Return animal_pens collection since it needs to be processed further
     return animal_pens.values()
