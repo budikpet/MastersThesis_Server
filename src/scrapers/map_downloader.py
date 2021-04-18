@@ -288,6 +288,11 @@ def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[di
 
             # Roads
             for road in data['roads']['features']:
+                if((access := road['properties'].get('access')) is not None):
+                    if(access == 'private'):
+                        # Do not use private roads
+                        continue
+                
                 _id = road['properties']['id']
                 road['geometry'] = prepare_geometry(road['geometry'])
                 
