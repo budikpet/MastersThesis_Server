@@ -302,7 +302,8 @@ def prepare_road_nodes(roads: dict[int: dict]) -> dict[int: dict]:
                 # New node found
                 road_nodes[_id] = {
                     '_id': _id,
-                    'coordinates': node,
+                    'lon': node[0],
+                    'lat': node[1],
                     'road_ids': {road['_id']}
                 }
 
@@ -312,9 +313,12 @@ def prepare_road_nodes(roads: dict[int: dict]) -> dict[int: dict]:
         road_ids = node['road_ids']
         node['road_ids'] = list(road_ids)
         node['is_connector'] = len(road_ids) > 1
-        
 
     return road_nodes
+
+def update_roads_with_nodes(roads: dict[int: dict], road_nodes: dict[int:dict]):
+    for road in roads:
+        pass
 
 def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[dict[int, str]]:
     """
@@ -378,7 +382,9 @@ def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[di
     zoo_parts_manual_update(zoo_parts)
     roads_manual_update(roads)
 
+    # Final refinement of road nodes and roads
     road_nodes = prepare_road_nodes(roads)
+    update_roads_with_nodes(roads, road_nodes)
 
     # Add collections to DB
     db_handler.drop_collection(collection_name='zoo_parts')
