@@ -214,6 +214,7 @@ def cleanup_roads(roads: dict[int: dict]):
         roads (dict[int): All roads parsed from GeoJSONS. Roads with the same ID had their coordinates merged already.
     """
     removed_roads = list()
+    unconstructed_roads = list()
     for road in roads.values():
         _id: int = road['properties']['id']
         road['_id'] = _id
@@ -237,7 +238,8 @@ def cleanup_roads(roads: dict[int: dict]):
         line_string: LineCoords = construct_one_line(starting_line, coords)
         
         if(line_string is None):
-            removed_roads.append(_id)
+            coords.append(starting_line)
+            unconstructed_roads.append(_id)
             continue
         
         update_road(road, line_string)
@@ -245,8 +247,8 @@ def cleanup_roads(roads: dict[int: dict]):
     for _id in removed_roads:
         roads.pop(_id, None)
 
-    if((length := len(removed_roads)) > 1):
-        logger.error(f'Could not automatically process {length} roads with ids: {removed_roads}.')
+    if((length := len(unconstructed_roads)) > 1):
+        logger.error(f'Could not automatically process {length} roads with ids: {unconstructed_roads}.')
 
 def zoo_parts_manual_update(zoo_parts: dict):
     """
@@ -280,7 +282,13 @@ def roads_manual_update(roads: dict):
             for road in json.load(f):
                 _id = road['_id']
                 if(_id in roads):
+                    road['geometry']['coordinates'] = [tuple(coord) for coord in road['geometry']['coordinates']]
                     roads[_id]['geometry'] = road['geometry']
+
+    # Remove roads that were not repaired
+    roads_to_remove = [road['_id'] for road in roads.values() if road['geometry']['type'] != 'LineString']
+    for road_id in roads_to_remove:
+        roads.pop(road_id)
 
 def prepare_road_nodes(roads: dict[int: dict]) -> dict[int: dict]:
     """
