@@ -221,7 +221,7 @@ def cleanup_roads(roads: dict[int: dict]):
 
         if(len(coords) == 1):
             # This line has only one part so it does not need to be connected
-            update_road(road, line_string)
+            update_road(road, coords[0])
             continue
 
         remove_duplicate_lines(coords)
@@ -237,14 +237,16 @@ def cleanup_roads(roads: dict[int: dict]):
         line_string: LineCoords = construct_one_line(starting_line, coords)
         
         if(line_string is None):
-            logger.error("Could not form line string for {}".format(_id))
-            coords.append(starting_line)
+            removed_roads.append(_id)
             continue
         
         update_road(road, line_string)
     
     for _id in removed_roads:
         roads.pop(_id, None)
+
+    if((length := len(removed_roads)) > 1):
+        logger.error(f'Could not automatically process {length} roads with ids: {removed_roads}.')
 
 def zoo_parts_manual_update(zoo_parts: dict):
     """
@@ -279,6 +281,37 @@ def roads_manual_update(roads: dict):
                 _id = road['_id']
                 if(_id in roads):
                     roads[_id]['geometry'] = road['geometry']
+
+def prepare_road_nodes(roads: dict[int: dict]) -> dict[int: dict]:
+    """
+    Creates a list of connector road nodes - nodes that belong to at least 2 different roads.
+    These nodes create roadmap graph of Zoo Prague.
+
+    Returns:
+        dict[int: dict]: Dictionary of connector nodes.
+    """
+
+    road_nodes: dict[int: dict] = dict()
+    for road in roads.values():
+        for node in road['geometry']['coordinates']:
+            _id = hash(node) % (10 ** 9)
+            if(_id in road_nodes):
+                # Node already exists, add road id
+                road_nodes[_id]['road_ids'].add(road['_id'])
+            else:
+                # New node found
+                road_nodes[_id] = {
+                    '_id': _id,
+                    'coordinates': node,
+                    'road_ids': {road['_id']}
+                }
+
+    road_nodes = {k:v for k,v in road_nodes.items() if len(v['road_ids']) > 1}
+
+    for node in road_nodes.values():
+        node['road_ids'] = list(node['road_ids'])
+
+    return road_nodes
 
 def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[dict[int, str]]:
     """
@@ -342,12 +375,17 @@ def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[di
     zoo_parts_manual_update(zoo_parts)
     roads_manual_update(roads)
 
+    road_nodes = prepare_road_nodes(roads)
+
     # Add collections to DB
     db_handler.drop_collection(collection_name='zoo_parts')
     db_handler.insert_many(data=zoo_parts.values(), collection_name='zoo_parts')
 
     db_handler.drop_collection(collection_name='roads')
     db_handler.insert_many(data=roads.values(), collection_name='roads')
+
+    db_handler.drop_collection(collection_name='road_connector_nodes')
+    db_handler.insert_many(data=road_nodes.values(), collection_name='road_connector_nodes')
 
     # Return animal_pens collection since it needs to be processed further
     return animal_pens.values()
