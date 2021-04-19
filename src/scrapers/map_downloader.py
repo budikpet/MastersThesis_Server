@@ -284,11 +284,11 @@ def roads_manual_update(roads: dict):
 
 def prepare_road_nodes(roads: dict[int: dict]) -> dict[int: dict]:
     """
-    Creates a list of connector road nodes - nodes that belong to at least 2 different roads.
+    Creates a list of road nodes where each knows to which road it belongs to.
     These nodes create roadmap graph of Zoo Prague.
 
     Returns:
-        dict[int: dict]: Dictionary of connector nodes.
+        dict[int: dict]: Dictionary of road nodes.
     """
 
     road_nodes: dict[int: dict] = dict()
@@ -306,10 +306,13 @@ def prepare_road_nodes(roads: dict[int: dict]) -> dict[int: dict]:
                     'road_ids': {road['_id']}
                 }
 
-    road_nodes = {k:v for k,v in road_nodes.items() if len(v['road_ids']) > 1}
+    # road_nodes = {k:v for k,v in road_nodes.items() if len(v['road_ids']) > 1}
 
     for node in road_nodes.values():
-        node['road_ids'] = list(node['road_ids'])
+        road_ids = node['road_ids']
+        node['road_ids'] = list(road_ids)
+        node['is_connector'] = len(road_ids) > 1
+        
 
     return road_nodes
 
@@ -384,8 +387,8 @@ def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[di
     db_handler.drop_collection(collection_name='roads')
     db_handler.insert_many(data=roads.values(), collection_name='roads')
 
-    db_handler.drop_collection(collection_name='road_connector_nodes')
-    db_handler.insert_many(data=road_nodes.values(), collection_name='road_connector_nodes')
+    db_handler.drop_collection(collection_name='road_nodes')
+    db_handler.insert_many(data=road_nodes.values(), collection_name='road_nodes')
 
     # Return animal_pens collection since it needs to be processed further
     return animal_pens.values()
