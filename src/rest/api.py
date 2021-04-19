@@ -7,7 +7,7 @@ import boto3
 from botocore.exceptions import ClientError
 from .config import get_settings
 from types import SimpleNamespace
-from server_dataclasses.rest_models import AnimalsResult, Metadata, BaseResult, AnimalDataOutput
+from server_dataclasses.rest_models import AnimalsResult, Metadata, BaseResult, AnimalDataOutput, MapMetadata, Road, RoadNode
 
 api_router = APIRouter(prefix='/api')
 
@@ -86,7 +86,7 @@ async def foods(settings: SimpleNamespace = Depends(get_settings)):
 
     return BaseResult(metadata=Metadata(**metadata),data=data)
 
-@api_router.get('/mapdata',responses={
+@api_router.get('/map/data',responses={
         200: {
             'content': {'application/octet-stream': {}},
             'description': 'Successful response',
@@ -107,3 +107,21 @@ async def map_data(settings: SimpleNamespace = Depends(get_settings)):
         client.download_file(settings.aws_storage_bucket_name, filename, str(mbtiles_path))
 
     return FileResponse(mbtiles_path, media_type='application/octet-stream', filename=filename)
+
+@api_router.get('/map/metadata', response_model=MapMetadata)
+async def map_metadata(settings: SimpleNamespace = Depends(get_settings)):
+    """
+    Returns map metadata containg configuration and road map data.
+    """
+    with settings.handler_class(**settings.config_data) as db_handler:
+        metadata: dict = db_handler.find({'_id': 0}, collection_name='metadata')[0]
+        metadata: Metadata = Metadata(**metadata)
+
+        roads: list[dict] = db_handler.find({}, collection_name='roads')
+        roads: list[Road] = [Road(**d) for d in roads]
+
+        road_nodes: list[dict] = db_handler.find({}, collection_name='road_nodes')
+        road_nodes: list[RoadNode] = [RoadNode(**d) for d in road_nodes]
+
+    res = MapMetadata(metadata=metadata,roads=roads,nodes=road_nodes)
+    return res

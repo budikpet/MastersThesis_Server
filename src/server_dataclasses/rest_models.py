@@ -72,3 +72,26 @@ class AnimalsResult(BaseModel):
 class BaseResult(BaseModel):
     metadata: Metadata
     data: list[str]
+
+### Map metadata ###
+
+class RoadNode(BaseModel):
+    id: int = Field(..., alias='_id')
+    lon: float
+    lat: float
+    road_ids: list[int]
+    is_connector: bool
+
+class Geometry(BaseModel):
+    type: str
+    coordinates: list[RoadNode]
+
+class Road(BaseModel):
+    id: int = Field(..., alias='_id')
+    geometry: Geometry
+    properties: dict
+
+class MapMetadata(BaseModel):
+    metadata: Metadata
+    nodes: list[RoadNode]
+    roads: list[Road]
