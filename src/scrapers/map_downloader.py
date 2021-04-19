@@ -317,8 +317,26 @@ def prepare_road_nodes(roads: dict[int: dict]) -> dict[int: dict]:
     return road_nodes
 
 def update_roads_with_nodes(roads: dict[int: dict], road_nodes: dict[int:dict]):
-    for road in roads:
-        pass
+    """
+    Transforms coordinates in roads from basic coordinates into full nodes.
+
+    Args:
+        roads (dict[int: dict]): All roads.
+        road_nodes (dict[int: dict]): All nodes.
+    """
+    node_values = list(road_nodes.values())
+    for road in roads.values():
+        geometry = road['geometry']
+        nodes: list[dict] = list()
+        for coord in geometry['coordinates']:
+            lon, lat = coord[0], coord[1]
+            for node_value in node_values:
+                if(node_value['lon'] == lon and node_value['lat'] == lat):
+                    # Node found
+                    nodes.append(node_value)
+                    break
+            
+        road['geometry']['coordinates'] = nodes
 
 def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[dict[int, str]]:
     """
