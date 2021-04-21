@@ -14,6 +14,7 @@ import csv
 import itertools
 import time
 import boto3
+from math import sin, cos, sqrt, atan2, radians
 from botocore.exceptions import ClientError
 from server_dataclasses.interfaces import DBHandlerInterface
 
@@ -324,6 +325,29 @@ def prepare_road_nodes(roads: dict[int: dict]) -> dict[int: dict]:
 
     return road_nodes
 
+def get_distance(pointA: tuple[float, float], pointB: tuple[float, float]) -> float:
+    """
+    Calculates distance between two points using Haversine formula.
+
+    Args:
+        pointA (tuple[float, float]): A tuple (lon, lat) of the first point.
+        pointB (tuple[float, float]): A tuple (lon, lat) of the second point.
+
+    Returns:
+        float: Approximate distance in meters.
+    """
+    # approximate radius of earth in km
+    __EARTH_RADIUS__ = 6378.14
+    lon1, lat1, lon2, lat2 = map(radians, [pointA[0], pointA[1], pointB[0], pointB[1]])
+
+    # haversine formula 
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+    return __EARTH_RADIUS__ * c * 1000
+
 def update_roads_with_nodes(roads: dict[int: dict], road_nodes: dict[int:dict]):
     """
     Transforms coordinates in roads from basic coordinates into full nodes.
@@ -336,14 +360,23 @@ def update_roads_with_nodes(roads: dict[int: dict], road_nodes: dict[int:dict]):
     for road in roads.values():
         geometry = road['geometry']
         nodes: list[dict] = list()
+        curr_distance: float = 0
+        last_coord: tuple[float, float] = None
         for coord in geometry['coordinates']:
             lon, lat = coord[0], coord[1]
+            
+            if(last_coord is not None):
+                curr_distance += get_distance(last_coord, (lon, lat))
+                
+            last_coord = (lon, lat)
+            
             for node_value in node_values:
                 if(node_value['lon'] == lon and node_value['lat'] == lat):
                     # Node found
                     nodes.append(node_value)
                     break
-            
+
+        road['properties']['length'] = curr_distance
         road['geometry']['coordinates'] = nodes
 
 def parse_map_data(folder_path: Path, db_handler: DBHandlerInterface) -> list[dict[int, str]]:
