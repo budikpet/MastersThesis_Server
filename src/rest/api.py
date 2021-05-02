@@ -86,6 +86,19 @@ async def foods(settings: SimpleNamespace = Depends(get_settings)):
 
     return BaseResult(metadata=Metadata(**metadata),data=data)
 
+@api_router.get('/zooHouses', response_model=BaseResult)
+async def foods(settings: SimpleNamespace = Depends(get_settings)):
+    """
+    Return a list of zoo houses.
+    """
+    with settings.handler_class(**settings.config_data) as db_handler:
+        metadata: dict = db_handler.find({'_id': 0}, collection_name='metadata')[0]
+        data: list[dict] = db_handler.find({}, projection={'_id': 1}, collection_name='zoo_houses')
+        data: list[str] = [d['_id'].capitalize() for d in data]
+        data.sort()
+
+    return BaseResult(metadata=Metadata(**metadata),data=data)
+
 @api_router.get('/map/data',responses={
         200: {
             'content': {'application/octet-stream': {}},
